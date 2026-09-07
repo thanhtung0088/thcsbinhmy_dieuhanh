@@ -22,6 +22,8 @@ import {
   Globe2,
   Map,
   BookMarked,
+  GraduationCap as ToTruongIcon,
+  BookOpenCheck,
   X,
 } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
@@ -39,6 +41,8 @@ const NAV: NavItem[] = [
   { to: '/quan-tri', label: 'Quản trị', icon: Landmark },
   { to: '/cong-tac-dang', label: 'Công tác Đảng', icon: Flag },
   { to: '/chuyen-mon', label: 'Chuyên môn', icon: GraduationCap },
+  { to: '/to-truong-cm', label: 'Tổ trưởng chuyên môn', icon: ToTruongIcon },
+  { to: '/ke-hoach-truong', label: 'Kế hoạch trường', icon: BookOpenCheck },
   { to: '/nhan-su', label: 'Nhân sự', icon: Users },
   { to: '/hoc-sinh', label: 'Học sinh', icon: UserSquare2 },
   { to: '/cong-viec', label: 'Công việc', icon: ClipboardList },

@@ -8,6 +8,8 @@ import { SystemMap } from './pages/SystemMap';
 import { DepartmentWorkspace } from './pages/DepartmentWorkspace';
 import { HocSinhWorkspace } from './pages/HocSinhWorkspace';
 import { DigitalLibrary } from './pages/DigitalLibrary';
+import { ToTruongCM } from './pages/ToTruongCM';
+import { KeHoachTruong } from './pages/KeHoachTruong';
 
 const LATER_PHASE_ROUTES: { path: string; label: string; phase: string; departmentKey?: string }[] = [
   { path: '/quan-tri', label: 'Quản trị nhà trường', phase: 'Phase 2' },
@@ -49,6 +51,8 @@ export default function App() {
         <Route path="/so-do-he-thong" element={<SystemMap />} />
         <Route path="/hoc-sinh" element={<HocSinhWorkspace />} />
         <Route path="/kho-hoc-lieu-so" element={<DigitalLibrary />} />
+        <Route path="/to-truong-cm" element={<ToTruongCM />} />
+        <Route path="/ke-hoach-truong" element={<KeHoachTruong />} />
         {LATER_PHASE_ROUTES.map((r) => (
           <Route
             key={r.path}

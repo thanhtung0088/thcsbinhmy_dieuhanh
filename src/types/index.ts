@@ -141,4 +141,8 @@ export interface Report {
   content: string;
   driveLink?: string;
   createdAt: string;
+  category?: string; // loại hồ sơ, vd "Kế hoạch tổ", "Chuyên đề"
+  status: 'cho_duyet' | 'yeu_cau_bo_sung' | 'da_duyet';
+  reviewNote?: string; // nhận xét của BGH khi yêu cầu bổ sung / phê duyệt
+  reviewedBy?: string;
 }
