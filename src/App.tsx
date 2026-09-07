@@ -4,18 +4,20 @@ import { useAuth } from './context/AuthContext';
 import { Login } from './pages/Login';
 import { Dashboard } from './pages/Dashboard';
 import { CampusOverview } from './pages/CampusOverview';
+import { CampusDetail } from './pages/CampusDetail';
 import { SystemMap } from './pages/SystemMap';
 import { DepartmentWorkspace } from './pages/DepartmentWorkspace';
 import { HocSinhWorkspace } from './pages/HocSinhWorkspace';
 import { DigitalLibrary } from './pages/DigitalLibrary';
 import { ToTruongCM } from './pages/ToTruongCM';
 import { KeHoachTruong } from './pages/KeHoachTruong';
+import { NhanSuChuyenMon } from './pages/NhanSuChuyenMon';
+import { DichVuCong } from './pages/DichVuCong';
+import { PhanTichDuBao } from './pages/PhanTichDuBao';
 
 const LATER_PHASE_ROUTES: { path: string; label: string; phase: string; departmentKey?: string }[] = [
   { path: '/quan-tri', label: 'Quản trị nhà trường', phase: 'Phase 2' },
   { path: '/cong-tac-dang', label: 'Công tác Đảng', phase: 'Phase 2' },
-  { path: '/chuyen-mon', label: 'Quản lý chuyên môn', phase: 'Phase 2', departmentKey: 'Chuyên môn' },
-  { path: '/nhan-su', label: 'Nhân sự', phase: 'Phase 2' },
   { path: '/cong-viec', label: 'Công việc / giao việc', phase: 'Phase 2' },
   { path: '/ai-agent', label: 'AI Agent', phase: 'Phase 6' },
   { path: '/kpi', label: 'KPI', phase: 'Phase 5' },
@@ -25,10 +27,8 @@ const LATER_PHASE_ROUTES: { path: string; label: string; phase: string; departme
   { path: '/lich-cong-tac', label: 'Lịch công tác', phase: 'Phase 2' },
   { path: '/kiem-tra', label: 'Kiểm tra nội bộ', phase: 'Phase 5' },
   { path: '/thi-dua', label: 'Thi đua – khen thưởng', phase: 'Phase 5', departmentKey: 'Thi đua' },
-  { path: '/phan-tich', label: 'Phân tích dữ liệu', phase: 'Phase 7' },
   { path: '/bao-cao', label: 'Báo cáo thông minh', phase: 'Phase 5' },
   { path: '/thong-bao', label: 'Thông báo', phase: 'Phase 2' },
-  { path: '/dich-vu-cong', label: 'Dịch vụ công', phase: 'Phase 4' },
   { path: '/cai-dat', label: 'Cài đặt', phase: 'Phase 8' },
 ];
 
@@ -48,11 +48,18 @@ export default function App() {
       <Route element={<AppLayout />}>
         <Route path="/" element={<Dashboard />} />
         <Route path="/diem-truong" element={<CampusOverview />} />
+        <Route path="/diem-truong/:campusId" element={<CampusDetail />} />
         <Route path="/so-do-he-thong" element={<SystemMap />} />
         <Route path="/hoc-sinh" element={<HocSinhWorkspace />} />
         <Route path="/kho-hoc-lieu-so" element={<DigitalLibrary />} />
         <Route path="/to-truong-cm" element={<ToTruongCM />} />
         <Route path="/ke-hoach-truong" element={<KeHoachTruong />} />
+        <Route path="/nhan-su-chuyen-mon" element={<NhanSuChuyenMon />} />
+        <Route path="/dich-vu-cong" element={<DichVuCong />} />
+        <Route path="/phan-tich" element={<PhanTichDuBao />} />
+        {/* Đường dẫn cũ trước khi gộp menu — chuyển hướng để không vỡ link đã lưu */}
+        <Route path="/chuyen-mon" element={<Navigate to="/nhan-su-chuyen-mon" replace />} />
+        <Route path="/nhan-su" element={<Navigate to="/nhan-su-chuyen-mon" replace />} />
         {LATER_PHASE_ROUTES.map((r) => (
           <Route
             key={r.path}

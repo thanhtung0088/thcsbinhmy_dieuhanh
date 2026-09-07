@@ -3,17 +3,18 @@
 // Extended in later phases (nhân sự, học sinh, tài chính, ...)
 // ============================================================
 
-export type CampusId = 'chinh' | 'diem1' | 'diem2';
+export type CampusId = 'chinh' | 'diem1' | 'diem2' | 'diem3';
 
 export interface Campus {
   id: CampusId;
   name: string; // tên điểm trường hiện tại
   formerName: string; // tên trường cũ trước sáp nhập
-  classLetter: string; // ký hiệu lớp: b=điểm chính, a=điểm 1, c=điểm 2
-  teacherCount: number; // giáo viên (kể cả TTCM/TPCM) — đếm từ Phân công chuyên môn HK1 2026-2027
-  staffCount: number; // nhân viên văn phòng, không kể BGH
+  classLetter: string; // ký hiệu lớp: b=điểm chính, a=điểm 1, c=điểm 2 & điểm 3
+  teacherCount?: number; // giáo viên — chưa tách được theo điểm 3 (roster PCCM chỉ ghi "Đ2" gộp)
+  staffCount?: number; // nhân viên văn phòng — chưa tách được theo điểm 3
   studentCount: number; // sĩ số đầu năm, tính đến 06/09/2026 (KH công tác tuần 1, số 14/KH-THCSBM)
-  classCount: number; // theo ghi chú PCCM: 26 lớp b (chính), 24 lớp a (điểm 1), 38 lớp c (điểm 2, gồm 2 phân hiệu)
+  classCount: number;
+  note?: string; // ghi chú minh bạch về giới hạn dữ liệu
 }
 
 export interface Leader {

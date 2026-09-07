@@ -10,8 +10,11 @@ import {
   Gauge,
   CalendarDays,
   AlertTriangle,
+  Globe2,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { PageBanner } from '../components/layout/PageBanner';
+import { Link } from 'react-router-dom';
 import {
   ALERTS,
   CAMPUSES,
@@ -90,8 +93,8 @@ export function Dashboard() {
 
   const totals = campuses.reduce(
     (acc, c) => ({
-      teachers: acc.teachers + c.teacherCount,
-      staff: acc.staff + c.staffCount,
+      teachers: acc.teachers + (c.teacherCount ?? 0),
+      staff: acc.staff + (c.staffCount ?? 0),
       students: acc.students + c.studentCount,
       classes: acc.classes + c.classCount,
     }),
@@ -105,10 +108,11 @@ export function Dashboard() {
 
   return (
     <div className="-m-6 p-6 bg-gradient-to-b from-sky-50 to-white space-y-6 min-h-full">
+      <PageBanner />
       <div>
         <p className="text-xs font-semibold tracking-wide text-blue-600">TRUNG TÂM ĐIỀU HÀNH</p>
         <h2 className="text-2xl font-bold text-blue-950 mt-0.5">
-          {activeCampus === 'all' ? 'Toàn trường · 3 điểm trường' : campuses[0]?.name}
+          {activeCampus === 'all' ? 'Toàn trường · 4 điểm trường' : campuses[0]?.name}
         </h2>
         <p className="text-xs text-blue-700/60 mt-1">
           Hiệu trưởng: {LEADERSHIP.find((l) => l.title === 'Hiệu trưởng')?.name}
@@ -144,13 +148,21 @@ export function Dashboard() {
 
       {/* Overview stat cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-7 gap-3">
-        <StatCard icon={Users} label="CB-GV-NV" value={totals.teachers + totals.staff} />
+        <StatCard
+          icon={Users}
+          label="CB-GV-NV"
+          value={totals.teachers + totals.staff}
+          sub={campuses.some((c) => c.teacherCount === undefined) ? 'Chưa gồm Điểm 2 & 3 (chưa tách NS)' : undefined}
+        />
         <StatCard icon={UserSquare2} label="Học sinh" value={totals.students.toLocaleString('vi-VN')} sub="Sĩ số đầu năm, 06/09/2026" />
         <StatCard icon={GraduationCap} label="Lớp" value={totals.classes} />
         <StatCard icon={Building2} label="Điểm trường" value={campuses.length} sub="3 điểm · 1 dữ liệu" />
         <StatCard icon={ClipboardList} label="Công việc" value={tasks.length} sub={`${overdueCount} quá hạn`} />
         <StatCard icon={FileText} label="Văn bản" value={DOCUMENTS.length} sub={`${newDocs} mới`} />
         <StatCard icon={Gauge} label="KPI (minh họa)" value={`${overallKpi}`} />
+        <Link to="/dich-vu-cong" className="block">
+          <StatCard icon={Globe2} label="Dịch vụ công" value="Xem yêu cầu" sub="PH · GV-NV · Trường lớp" />
+        </Link>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">

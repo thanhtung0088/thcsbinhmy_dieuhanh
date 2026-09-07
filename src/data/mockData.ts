@@ -27,6 +27,8 @@ export const LEADERSHIP: Leader[] = [
   { id: 'l1', name: 'Trần Đỗ Phương Bình', title: 'Hiệu trưởng', campusId: 'all', concurrent: 'Bí thư Đảng bộ' },
   { id: 'l2', name: 'Nguyễn Thị Mến', title: 'Phó Hiệu trưởng phụ trách Điểm 1', campusId: 'diem1', concurrent: 'Phó Bí thư Đảng bộ' },
   { id: 'l3', name: 'Nguyễn Thanh Nhàn', title: 'Phó Hiệu trưởng phụ trách Điểm 2', campusId: 'diem2' },
+  // Điểm 3 (nâng cấp từ phân hiệu) hiện chưa có quyết định phân công
+  // Phó Hiệu trưởng phụ trách — để trống, không suy diễn người phụ trách.
 ];
 
 export const CAMPUSES: Campus[] = [
@@ -53,18 +55,27 @@ export const CAMPUSES: Campus[] = [
   {
     id: 'diem2',
     name: 'Điểm 2',
-    formerName: 'THCS Bình (cũ)',
+    formerName: 'THCS Bình Hòa (cũ)',
     classLetter: 'c',
-    teacherCount: 70,
-    staffCount: 10, // TPVP + Nhân viên (9)
-    studentCount: 1676,
-    classCount: 38, // 22 lớp c chính + 16 lớp c phân hiệu (cầu Bà Đội / cầu Bà Đế)
+    studentCount: 973, // lớp 6c5-6c10, 7c5-7c10, 8c5-8c9, 9c5-9c9 (khu cầu Bà Đội)
+    classCount: 22,
+    note: 'Nhân sự (GV/NV) chưa tách riêng theo Điểm 2/Điểm 3 — PCCM HK1 chỉ ghi gộp "Đ2".',
+  },
+  {
+    id: 'diem3',
+    name: 'Điểm 3',
+    formerName: 'Phân hiệu THCS Bình Hòa (cũ) — nâng cấp thành Điểm 3',
+    classLetter: 'c',
+    studentCount: 703, // lớp 6c1-6c4, 7c1-7c4, 8c1-8c4, 9c1-9c4 (khu cầu Bà Đế)
+    classCount: 16,
+    note: 'Vừa nâng cấp từ phân hiệu — chưa có quyết định phân công Phó Hiệu trưởng, nhân sự GV/NV chưa tách riêng.',
   },
 ];
 
 export const TOTAL_STUDENTS = 3744; // sĩ số đầu năm toàn trường, tính đến 06/09/2026
 
-// Tổ trưởng/Tổ phó Văn phòng thực tế theo từng điểm
+// Tổ trưởng/Tổ phó Văn phòng thực tế theo từng điểm — điểm 2 & điểm 3
+// dùng chung một tổ văn phòng do PCCM HK1 chưa tách riêng nhân sự.
 export const OFFICE_STAFF: OfficeStaffGroup[] = [
   { campusId: 'chinh', head: { name: 'Nguyễn Thị Minh Tâm', campusId: 'chinh', title: 'TTVP' }, staffCount: 12 },
   { campusId: 'diem1', head: { name: 'Dương Thị Cẩm Tú', campusId: 'diem1', title: 'TPVP' }, staffCount: 6 },

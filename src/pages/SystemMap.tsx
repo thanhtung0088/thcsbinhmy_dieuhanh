@@ -1,5 +1,4 @@
 import {
-  School,
   Flag,
   Users2,
   Building2,
@@ -9,51 +8,67 @@ import {
   BrainCircuit,
   Database,
   Cloud,
+  User,
+  ShieldCheck,
+  Settings2,
 } from 'lucide-react';
 import { CAMPUSES, LEADERSHIP, OFFICE_STAFF, PARTY_CELLS, SUBJECT_GROUPS, TOTAL_PARTY_MEMBERS } from '../data/mockData';
 import { MODULE_CARDS, MODULE_COLOR_CLASSES } from '../data/moduleMap';
+import { PageBanner } from '../components/layout/PageBanner';
 
 const CAMPUS_ACCENT: Record<string, { ring: string; badge: string; icon: string }> = {
   chinh: { ring: 'border-rose-200', badge: 'bg-rose-600', icon: 'text-rose-600' },
   diem1: { ring: 'border-blue-200', badge: 'bg-blue-600', icon: 'text-blue-600' },
   diem2: { ring: 'border-emerald-200', badge: 'bg-emerald-600', icon: 'text-emerald-600' },
+  diem3: { ring: 'border-amber-200', badge: 'bg-amber-600', icon: 'text-amber-600' },
 };
 
-function OrgBox({ title, sub, tone = 'ink' }: { title: string; sub?: string; tone?: 'ink' | 'gold' }) {
+type OrgTone = 'navy' | 'green' | 'vacant' | 'orange' | 'purple' | 'teal';
+
+const ORG_TONE: Record<OrgTone, { header: string; body: string; icon: string }> = {
+  navy: { header: 'bg-hoa-950', body: 'bg-blue-50 text-hoa-950 border-hoa-950/20', icon: 'bg-white/15' },
+  green: { header: 'bg-emerald-600', body: 'bg-emerald-50 text-emerald-900 border-emerald-200', icon: 'bg-white/20' },
+  vacant: { header: 'bg-slate-300', body: 'bg-slate-50 text-slate-500 border-slate-300 border-dashed', icon: 'bg-white/40' },
+  orange: { header: 'bg-orange-500', body: 'bg-orange-50 text-orange-900 border-orange-200', icon: 'bg-white/20' },
+  purple: { header: 'bg-violet-600', body: 'bg-violet-50 text-violet-900 border-violet-200', icon: 'bg-white/20' },
+  teal: { header: 'bg-teal-600', body: 'bg-teal-50 text-teal-900 border-teal-200', icon: 'bg-white/20' },
+};
+
+function OrgNode({
+  icon: Icon,
+  title,
+  sub,
+  tone,
+}: {
+  icon: typeof User;
+  title: string;
+  sub?: string;
+  tone: OrgTone;
+}) {
+  const t = ORG_TONE[tone];
   return (
-    <div
-      className={`rounded-lg border px-3 py-2 text-center shadow-sm ${
-        tone === 'gold' ? 'bg-hoa-950 text-white border-hoa-950' : 'bg-white border-black/10 text-ink'
-      }`}
-    >
-      <p className="text-xs font-semibold leading-tight">{title}</p>
-      {sub && <p className="text-[10px] text-current/70 mt-0.5">{sub}</p>}
+    <div className={`rounded-xl border overflow-hidden shadow-sm ${t.body}`}>
+      <div className={`flex items-center gap-2 px-3 py-2 text-white ${t.header}`}>
+        <div className={`h-6 w-6 rounded-full grid place-items-center shrink-0 ${t.icon}`}>
+          <Icon size={13} />
+        </div>
+        <p className="text-[11px] font-bold uppercase leading-tight">{title}</p>
+      </div>
+      <div className="px-3 py-2 text-center">
+        <p className="text-[11px] font-semibold leading-snug">{sub ?? '—'}</p>
+      </div>
     </div>
   );
+}
+
+function Connector() {
+  return <div className="h-4 w-px bg-black/15 mx-auto" />;
 }
 
 export function SystemMap() {
   return (
     <div className="space-y-4 -m-6 p-6 bg-[#eef1f6]">
-      {/* Header banner */}
-      <div className="rounded-xl bg-hoa-950 text-white px-6 py-5 flex items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <div className="h-12 w-12 rounded-lg bg-white/10 grid place-items-center shrink-0">
-            <School size={24} />
-          </div>
-          <div>
-            <h1 className="text-xl font-bold leading-tight">TRẠM ĐIỀU HÀNH TRƯỜNG THCS 3 ĐIỂM</h1>
-            <p className="text-sm text-white/70 mt-0.5">
-              01 Nhà trường thống nhất – 03 điểm trường – 01 hệ thống dữ liệu – 01 bộ máy điều hành
-            </p>
-          </div>
-        </div>
-        <div className="hidden lg:block text-right text-xs text-gold-400 italic leading-snug">
-          Chuyển đổi số – Nâng tầm quản trị
-          <br />
-          Kiến tạo môi trường giáo dục hiện đại
-        </div>
-      </div>
+      <PageBanner />
 
       {/* Row: campuses / org chart / party cells / subject groups */}
       <div className="grid grid-cols-1 xl:grid-cols-[1.1fr_1.4fr_1fr_0.9fr] gap-4">
@@ -61,9 +76,9 @@ export function SystemMap() {
         <div className="rounded-xl bg-white border border-black/10 p-4">
           <div className="flex items-center gap-2 mb-3 text-hoa-950">
             <Users2 size={16} />
-            <h3 className="text-sm font-bold">ĐIỂM TRƯỜNG</h3>
+            <h3 className="text-sm font-bold">4 ĐIỂM TRƯỜNG</h3>
           </div>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-2 gap-2">
             {CAMPUSES.map((c) => {
               const accent = CAMPUS_ACCENT[c.id];
               return (
@@ -76,7 +91,7 @@ export function SystemMap() {
                   </p>
                   <p className="text-[11px] font-medium text-ink mt-1 leading-tight">{c.formerName}</p>
                   <p className="text-[10px] text-ink/40">
-                    {LEADERSHIP.find((l) => l.campusId === c.id)?.name ?? 'Hiệu trưởng trực tiếp phụ trách'}
+                    {LEADERSHIP.find((l) => l.campusId === c.id)?.name ?? 'Chưa bổ nhiệm PHT'}
                   </p>
                 </div>
               );
@@ -84,33 +99,36 @@ export function SystemMap() {
           </div>
         </div>
 
-        {/* Org chart */}
+        {/* Org chart — Hiệu trưởng phụ trách chung 4 điểm trường */}
         <div className="rounded-xl bg-white border border-black/10 p-4">
           <div className="flex items-center gap-2 mb-3 text-hoa-950">
             <UserCircle2 size={16} />
             <h3 className="text-sm font-bold">SƠ ĐỒ TỔ CHỨC NHÀ TRƯỜNG</h3>
           </div>
-          <div className="flex flex-col items-center gap-2">
-            <div className="flex gap-2">
-              <OrgBox title="HIỆU TRƯỞNG" sub={LEADERSHIP.find((l) => l.title === 'Hiệu trưởng')?.name} tone="gold" />
-              <OrgBox title="HỘI ĐỒNG TRƯỜNG" />
+          <div className="flex flex-col items-center gap-1.5">
+            <div className="w-56">
+              <OrgNode icon={User} title="Hiệu trưởng" sub={LEADERSHIP.find((l) => l.title === 'Hiệu trưởng')?.name} tone="navy" />
             </div>
-            <div className="h-3 w-px bg-black/15" />
-            <div className="grid grid-cols-2 gap-3 w-full">
-              <OrgBox
-                title="PHÓ HIỆU TRƯỞNG"
-                sub={`Điểm 1 · ${LEADERSHIP.find((l) => l.campusId === 'diem1')?.name}`}
-              />
-              <OrgBox
-                title="PHÓ HIỆU TRƯỞNG"
-                sub={`Điểm 2 · ${LEADERSHIP.find((l) => l.campusId === 'diem2')?.name}`}
-              />
+            <Connector />
+            <div className="grid grid-cols-4 gap-1.5 w-full">
+              {CAMPUSES.map((c) => {
+                const head = LEADERSHIP.find((l) => l.campusId === c.id);
+                return (
+                  <OrgNode
+                    key={c.id}
+                    icon={User}
+                    title="Phó Hiệu trưởng"
+                    sub={head ? `${c.name} · ${head.name}` : `${c.name} · Chưa bổ nhiệm`}
+                    tone={head ? 'green' : 'vacant'}
+                  />
+                );
+              })}
             </div>
-            <div className="h-3 w-px bg-black/15" />
-            <div className="grid grid-cols-3 gap-2 w-full">
-              <OrgBox title="Tổ chuyên môn" sub="11 tổ" />
-              <OrgBox title="Tổ Văn phòng" sub={OFFICE_STAFF[0].head.name} />
-              <OrgBox title="Các bộ phận chức năng" />
+            <Connector />
+            <div className="grid grid-cols-3 gap-1.5 w-full">
+              <OrgNode icon={Users2} title="Tổ chuyên môn" sub="11 tổ" tone="orange" />
+              <OrgNode icon={ShieldCheck} title="Tổ Văn phòng" sub={OFFICE_STAFF[0].head.name} tone="purple" />
+              <OrgNode icon={Settings2} title="Các bộ phận chức năng" tone="teal" />
             </div>
           </div>
         </div>
