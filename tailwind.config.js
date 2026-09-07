@@ -10,10 +10,10 @@ export default {
         // Command-center palette grounded in the subject: a school ops
         // center, not a generic SaaS dashboard.
         hoa: {
-          950: '#0B1220', // deep slate-navy, sidebar / chrome
-          900: '#101B30',
-          800: '#172542',
-          700: '#213258',
+          950: '#0F2A5C', // deep school blue — sidebar / footer chrome
+          900: '#153E7A',
+          800: '#1D4E96',
+          700: '#2563C7',
         },
         paper: '#F7F5EF', // warm off-white content ground, not stark white
         ink: '#1C1B18',
