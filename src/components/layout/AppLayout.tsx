@@ -14,10 +14,12 @@ export function AppLayout() {
       <div className="flex flex-1 flex-col min-w-0">
         <Topbar onOpenSidebar={() => setMobileNavOpen(true)} />
         <MarqueeBar />
-        <main className="flex-1 overflow-y-auto bg-paper p-6">
-          <Outlet />
+        <main className="flex-1 overflow-y-auto bg-paper flex flex-col">
+          <div className="flex-1 p-6">
+            <Outlet />
+          </div>
+          <Footer />
         </main>
-        <Footer />
       </div>
     </div>
   );
