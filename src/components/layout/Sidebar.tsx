@@ -22,6 +22,7 @@ import {
   Globe2,
   Map,
   BookMarked,
+  X,
 } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 
@@ -62,45 +63,74 @@ const NAV: NavItem[] = [
 // and reviewable from day one.
 export const IMPLEMENTED_ROUTES = new Set(['/', '/diem-truong']);
 
-export function Sidebar() {
+interface SidebarProps {
+  mobileOpen: boolean;
+  onClose: () => void;
+}
+
+export function Sidebar({ mobileOpen, onClose }: SidebarProps) {
   return (
-    <aside className="hidden md:flex md:w-64 md:flex-col bg-hoa-950 text-white/90 shrink-0">
-      <div className="px-5 py-6 border-b border-white/10 flex items-center gap-3">
-        <img
-          src="/logo-thcs-binh-my.png"
-          alt="Logo THCS Bình Mỹ"
-          className="h-11 w-11 rounded-full bg-white object-contain shrink-0"
+    <>
+      {/* Backdrop — mobile only, shown while drawer is open */}
+      {mobileOpen && (
+        <div
+          className="fixed inset-0 z-30 bg-black/40 md:hidden"
+          onClick={onClose}
+          aria-hidden="true"
         />
-        <div>
-          <p className="text-[11px] tracking-wide text-gold-400 font-semibold">TRẠM ĐIỀU HÀNH</p>
-          <h1 className="text-base font-bold leading-tight">
-            THCS Bình Mỹ
-            <span className="block text-xs font-medium text-white/60">3 điểm trường</span>
-          </h1>
-        </div>
-      </div>
-      <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-0.5">
-        {NAV.map(({ to, label, icon: Icon }) => (
-          <NavLink
-            key={to}
-            to={to}
-            end={to === '/'}
-            className={({ isActive }) =>
-              `flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors ${
-                isActive
-                  ? 'bg-hoa-700 text-white font-medium'
-                  : 'text-white/70 hover:bg-hoa-900 hover:text-white'
-              }`
-            }
+      )}
+
+      <aside
+        className={`fixed inset-y-0 left-0 z-40 w-64 flex flex-col bg-hoa-950 text-white/90 shrink-0
+          transition-transform duration-200 ease-out
+          md:static md:z-auto md:flex md:translate-x-0
+          ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}`}
+      >
+        <div className="px-5 py-6 border-b border-white/10 flex items-center gap-3">
+          <img
+            src="/logo-thcs-binh-my.png"
+            alt="Logo THCS Bình Mỹ"
+            className="h-11 w-11 rounded-full bg-white object-contain shrink-0"
+          />
+          <div className="flex-1 min-w-0">
+            <p className="text-[11px] tracking-wide text-gold-400 font-semibold">TRẠM ĐIỀU HÀNH</p>
+            <h1 className="text-base font-bold leading-tight">
+              THCS Bình Mỹ
+              <span className="block text-xs font-medium text-white/60">3 điểm trường</span>
+            </h1>
+          </div>
+          <button
+            onClick={onClose}
+            aria-label="Đóng menu"
+            className="md:hidden text-white/60 hover:text-white shrink-0"
           >
-            <Icon size={17} strokeWidth={2} />
-            <span className="truncate">{label}</span>
-          </NavLink>
-        ))}
-      </nav>
-      <div className="px-4 py-3 border-t border-white/10 text-[11px] text-white/40">
-        01 nhà trường · 03 điểm trường · 01 dữ liệu
-      </div>
-    </aside>
+            <X size={20} />
+          </button>
+        </div>
+        <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-0.5">
+          {NAV.map(({ to, label, icon: Icon }) => (
+            <NavLink
+              key={to}
+              to={to}
+              end={to === '/'}
+              onClick={onClose}
+              className={({ isActive }) =>
+                `flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors ${
+                  isActive
+                    ? 'bg-hoa-700 text-white font-medium'
+                    : 'text-white/70 hover:bg-hoa-900 hover:text-white'
+                }`
+              }
+            >
+              <Icon size={17} strokeWidth={2} />
+              <span className="truncate">{label}</span>
+            </NavLink>
+          ))}
+        </nav>
+        <div className="px-4 py-3 border-t border-white/10 text-[11px] text-white/40">
+          01 nhà trường · 03 điểm trường · 01 dữ liệu
+        </div>
+      </aside>
+    </>
   );
 }
