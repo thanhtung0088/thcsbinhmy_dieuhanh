@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Landmark } from 'lucide-react';
 import { DICH_VU_CONG_TABS } from '../data/dichVuCong';
 import { ServiceRequestModal } from '../components/shared/ServiceRequestModal';
+import { AiAssistantWidget } from '../components/shared/AiAssistantWidget';
 
 export function DichVuCong() {
   const [tab, setTab] = useState(DICH_VU_CONG_TABS[0].id);
@@ -59,6 +60,8 @@ export function DichVuCong() {
           onClose={() => setOpenService(null)}
         />
       )}
+
+      <AiAssistantWidget />
     </div>
   );
 }

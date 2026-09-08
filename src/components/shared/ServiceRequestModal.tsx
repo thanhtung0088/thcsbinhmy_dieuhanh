@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { X, Send, Paperclip, CheckCircle2 } from 'lucide-react';
+import { X, Send, Paperclip, CheckCircle2, Sparkles, Loader2 } from 'lucide-react';
 import { useReports } from '../../context/ReportsContext';
 
 interface ServiceRequestModalProps {
@@ -16,6 +16,33 @@ export function ServiceRequestModal({ groupLabel, serviceLabel, onClose }: Servi
   const [content, setContent] = useState('');
   const [attachments, setAttachments] = useState<string[]>([]);
   const [sent, setSent] = useState(false);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
+
+  async function handleAiDraft() {
+    setAiLoading(true);
+    setAiError(null);
+    try {
+      const resp = await fetch('/api/gemini', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          mode: 'draft',
+          serviceLabel,
+          groupLabel,
+          requesterName,
+          className,
+        }),
+      });
+      const data = await resp.json();
+      if (!resp.ok) throw new Error(data?.error || 'Có lỗi xảy ra');
+      setContent(data.text || '');
+    } catch (e: any) {
+      setAiError(e?.message ?? 'Không tạo được nội dung gợi ý. Bạn tự nhập giúp mình nhé.');
+    } finally {
+      setAiLoading(false);
+    }
+  }
 
   function handleAttach() {
     const name = window.prompt('Dán tên/đường dẫn tài liệu đính kèm (ví dụ: link Google Drive):');
@@ -80,6 +107,15 @@ export function ServiceRequestModal({ groupLabel, serviceLabel, onClose }: Servi
               placeholder="Nội dung / lý do cụ thể *"
               className="w-full rounded-lg border border-black/10 px-3 py-2.5 text-sm focus-ring resize-none"
             />
+            <button
+              onClick={handleAiDraft}
+              disabled={aiLoading}
+              className="flex items-center gap-1.5 text-xs font-medium text-blue-600 hover:text-blue-700 disabled:opacity-40"
+            >
+              {aiLoading ? <Loader2 size={13} className="animate-spin" /> : <Sparkles size={13} />}
+              {aiLoading ? 'AI đang soạn...' : 'Nhờ AI soạn giúp'}
+            </button>
+            {aiError && <p className="text-[11px] text-signal-overdue">{aiError}</p>}
 
             <button
               onClick={handleAttach}
