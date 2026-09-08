@@ -1,11 +1,13 @@
 import { Sparkles, Video, LogOut, Menu } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { useAiAssistant } from '../../context/AiAssistantContext';
 import { CAMPUSES } from '../../data/mockData';
 import { ROLE_LABELS } from '../../lib/rbac';
 import { GlobalSearch } from './GlobalSearch';
 
 export function Topbar({ onOpenSidebar }: { onOpenSidebar: () => void }) {
   const { user, activeCampus, setActiveCampus, logout } = useAuth();
+  const { openAssistant } = useAiAssistant();
 
   return (
     <header className="flex items-center gap-3 md:gap-4 border-b border-black/10 bg-white px-3 md:px-6 py-3 shrink-0">
@@ -42,7 +44,10 @@ export function Topbar({ onOpenSidebar }: { onOpenSidebar: () => void }) {
         Họp online
       </a>
 
-      <button className="flex items-center gap-2 rounded-lg bg-hoa-950 px-3 md:px-3.5 py-2 text-sm font-medium text-white hover:bg-hoa-800 transition-colors shrink-0">
+      <button
+        onClick={openAssistant}
+        className="flex items-center gap-2 rounded-lg bg-hoa-950 px-3 md:px-3.5 py-2 text-sm font-medium text-white hover:bg-hoa-800 transition-colors shrink-0"
+      >
         <Sparkles size={16} className="text-gold-400" />
         <span className="hidden sm:inline">Hỏi AI</span>
       </button>

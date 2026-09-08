@@ -16,11 +16,34 @@ Quy tắc:
   chính xác.
 - Không bịa số điện thoại, địa chỉ, hay số liệu cụ thể của trường.`;
 
+const OPS_SYSTEM_CONTEXT = `Bạn là "Trợ lý điều hành AI" của Trạm Điều Hành Trường THCS Bình Mỹ —
+hỗ trợ Ban Giám hiệu, Tổ trưởng chuyên môn và giáo viên trong công việc quản lý,
+điều hành, phân tích số liệu nhà trường.
+Quy tắc:
+- Trả lời bằng tiếng Việt, súc tích, đi thẳng vào việc, có thể dùng gạch đầu dòng.
+- Nếu người dùng hỏi số liệu cụ thể mà không có trong dữ liệu được cung cấp kèm
+  câu hỏi, hãy nói rõ là chưa có dữ liệu, không tự bịa số liệu.
+- Có thể đưa ra nhận định, cảnh báo, gợi ý hành động dựa trên dữ liệu được cung cấp,
+  nhưng luôn phân biệt rõ đâu là số liệu thật, đâu là nhận định/gợi ý của bạn.`;
+
+const KPI_SYSTEM_CONTEXT = `Bạn là AI Agent hỗ trợ Hiệu trưởng Trường THCS Bình Mỹ tổng hợp kết quả
+tự đánh giá, xếp loại KPI quý của giáo viên/cán bộ.
+Bạn sẽ nhận một danh sách các bản tự đánh giá ĐÃ ĐƯỢC HỆ THỐNG TÍNH ĐIỂM SẴN
+(không phải bạn tính) — nhiệm vụ của bạn là ĐỌC HIỂU và VIẾT BÁO CÁO TỔNG HỢP,
+không tự tính toán lại hay suy diễn ra số điểm khác với số liệu được cung cấp.
+Quy tắc:
+- Trả lời bằng tiếng Việt, giọng chuyên nghiệp, súc tích, có cấu trúc rõ ràng
+  (dùng gạch đầu dòng / đoạn ngắn), tối đa khoảng 350 từ.
+- Nội dung cần có: (1) Nhận định chung toàn trường, (2) Nêu tên các cá nhân nổi bật
+  (điểm cao, hoàn thành xuất sắc), (3) Nêu tên các cá nhân cần lưu ý/hỗ trợ thêm
+  (điểm thấp, nhiều nhiệm vụ trễ hạn), (4) Đề xuất hành động cụ thể cho Hiệu trưởng.
+- Luôn dùng đúng số điểm, tên, tỉ lệ đã cho trong dữ liệu — không bịa thêm số liệu.`;
+
 interface GeminiPart {
   text: string;
 }
 
-async function callGemini(apiKey: string, systemText: string, userText: string) {
+async function callGemini(apiKey: string, systemText: string, userText: string, maxOutputTokens = 400) {
   const resp = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent`,
     {
@@ -34,7 +57,7 @@ async function callGemini(apiKey: string, systemText: string, userText: string) 
       body: JSON.stringify({
         systemInstruction: { parts: [{ text: systemText }] },
         contents: [{ role: 'user', parts: [{ text: userText }] }],
-        generationConfig: { temperature: 0.4, maxOutputTokens: 400 },
+        generationConfig: { temperature: 0.4, maxOutputTokens },
       }),
     }
   );
@@ -87,7 +110,60 @@ Chỉ trả về đúng đoạn nội dung, không thêm tiêu đề, không th�
       });
     }
 
-    // mode === 'chat' (mặc định): hỏi-đáp tự do về thủ tục
+    if (mode === 'ops-chat') {
+      // Trợ lý điều hành chung (nút "Hỏi AI" trên thanh trên cùng)
+      const { message, context } = body;
+      if (!message || typeof message !== 'string') {
+        return new Response(JSON.stringify({ error: 'Thiếu nội dung câu hỏi' }), { status: 400 });
+      }
+      const prompt = context
+        ? `Dữ liệu hiện có của trường (JSON, dùng để trả lời nếu liên quan, không bịa thêm ngoài đây):\n${JSON.stringify(
+            context
+          )}\n\nCâu hỏi: ${message}`
+        : message;
+      const text = await callGemini(apiKey, OPS_SYSTEM_CONTEXT, prompt, 500);
+      return new Response(JSON.stringify({ text }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    if (mode === 'phan-tich') {
+      // AI Agent tại trang Phân tích và dự báo — trả lời câu hỏi hoặc tự đưa
+      // ra nhận định/dự báo dựa trên dữ liệu snapshot của trang
+      const { message, context, autoInsight } = body;
+      const dataBlock = `Dữ liệu snapshot trang Phân tích và dự báo (JSON):\n${JSON.stringify(context ?? {})}`;
+      const prompt = autoInsight
+        ? `${dataBlock}\n\nHãy viết 1 đoạn nhận định + dự báo ngắn (khoảng 100-150 từ) về tình hình chung của trường
+dựa trên dữ liệu trên: điểm cần chú ý, xu hướng, rủi ro/cảnh báo nổi bật, và 1-2 gợi ý hành động cho Ban Giám hiệu.`
+        : `${dataBlock}\n\nCâu hỏi: ${message}`;
+      const text = await callGemini(apiKey, OPS_SYSTEM_CONTEXT, prompt, 450);
+      return new Response(JSON.stringify({ text }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    if (mode === 'kpi-summary') {
+      // AI Agent tổng hợp các bản tự đánh giá KPI thành báo cáo trình Hiệu trưởng
+      const { submissions } = body;
+      if (!Array.isArray(submissions) || submissions.length === 0) {
+        return new Response(JSON.stringify({ error: 'Chưa có dữ liệu bản tự đánh giá nào để tổng hợp' }), {
+          status: 400,
+        });
+      }
+      const prompt = `Danh sách bản tự đánh giá KPI đã được hệ thống tính điểm sẵn (JSON):
+${JSON.stringify(submissions)}
+
+Hãy viết báo cáo tổng hợp trình Hiệu trưởng theo đúng cấu trúc đã hướng dẫn.`;
+      const text = await callGemini(apiKey, KPI_SYSTEM_CONTEXT, prompt, 900);
+      return new Response(JSON.stringify({ text }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    // mode === 'chat' (mặc định): hỏi-đáp tự do về thủ tục (Dịch vụ công)
     const { message } = body;
     if (!message || typeof message !== 'string') {
       return new Response(JSON.stringify({ error: 'Thiếu nội dung câu hỏi' }), { status: 400 });

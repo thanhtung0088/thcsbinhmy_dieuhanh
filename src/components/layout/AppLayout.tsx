@@ -5,6 +5,7 @@ import { Topbar } from './Topbar';
 import { MarqueeBar } from './MarqueeBar';
 import { Footer } from './Footer';
 import { PageBanner } from './PageBanner';
+import { GlobalAiAssistant } from '../shared/GlobalAiAssistant';
 
 export function AppLayout() {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
@@ -23,6 +24,7 @@ export function AppLayout() {
           <Footer />
         </main>
       </div>
+      <GlobalAiAssistant />
     </div>
   );
 }

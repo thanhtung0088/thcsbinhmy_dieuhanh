@@ -4,7 +4,7 @@ interface ResourceLink {
   title: string;
   url: string;
   desc: string;
-  group: 'phap-luat' | 'ai';
+  group: 'phap-luat' | 'ai' | 'cong-cu';
 }
 
 // Chỉ các trang chính thống/nền tảng phổ biến có thể xác minh — không
@@ -35,11 +35,23 @@ const LINKS: ResourceLink[] = [
   { group: 'ai', title: 'Quizizz', url: 'https://quizizz.com', desc: 'Tạo trò chơi/bài kiểm tra tương tác cho học sinh.' },
   { group: 'ai', title: 'Padlet', url: 'https://padlet.com', desc: 'Bảng ghim tương tác cho hoạt động nhóm, thảo luận lớp.' },
   { group: 'ai', title: 'CapCut', url: 'https://www.capcut.com', desc: 'Dựng video bài giảng, clip tuyên truyền miễn phí.' },
+  // Công cụ dạy học & quản lý lớp phổ biến tại Việt Nam
+  { group: 'cong-cu', title: 'Violet.vn', url: 'https://violet.vn', desc: 'Thư viện giáo án, bài giảng điện tử, tư liệu dạy học.' },
+  { group: 'cong-cu', title: 'OLM.vn', url: 'https://olm.vn', desc: 'Ôn luyện, bài giảng trực tuyến theo chương trình phổ thông.' },
+  { group: 'cong-cu', title: 'Azota', url: 'https://azota.vn', desc: 'Tạo đề kiểm tra, giao bài, chấm điểm trực tuyến.' },
+  { group: 'cong-cu', title: 'Hocmai.vn', url: 'https://hocmai.vn', desc: 'Học liệu, bài giảng ôn tập trực tuyến các cấp học.' },
+  { group: 'cong-cu', title: 'Kahoot!', url: 'https://kahoot.com', desc: 'Trò chơi câu hỏi tương tác, tăng hứng thú tiết học.' },
+  { group: 'cong-cu', title: 'Wordwall', url: 'https://wordwall.net', desc: 'Tạo trò chơi, phiếu học tập tương tác nhanh.' },
+  { group: 'cong-cu', title: 'Google Forms', url: 'https://forms.google.com', desc: 'Tạo phiếu khảo sát, bài kiểm tra trắc nghiệm miễn phí.' },
+  { group: 'cong-cu', title: 'Google Workspace for Education', url: 'https://edu.google.com/intl/vi/workspace-for-education/', desc: 'Bộ công cụ Google dành riêng cho trường học.' },
+  { group: 'cong-cu', title: 'iLovePDF', url: 'https://www.ilovepdf.com/vi', desc: 'Gộp, tách, chuyển đổi, nén file PDF miễn phí.' },
+  { group: 'cong-cu', title: 'Zalo', url: 'https://zalo.me', desc: 'Liên lạc phụ huynh - học sinh, nhóm lớp, thông báo nhanh.' },
 ];
 
 const GROUP_LABEL: Record<ResourceLink['group'], string> = {
   'phap-luat': 'Pháp luật & giáo dục',
   ai: 'Nền tảng AI miễn phí',
+  'cong-cu': 'Công cụ dạy học & quản lý',
 };
 
 export function DigitalLibrary() {
@@ -53,7 +65,7 @@ export function DigitalLibrary() {
         </p>
       </div>
 
-      {(['phap-luat', 'ai'] as const).map((group) => (
+      {(['phap-luat', 'ai', 'cong-cu'] as const).map((group) => (
         <div key={group}>
           <p className="text-sm font-semibold text-ink/70 mb-2">{GROUP_LABEL[group]}</p>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">

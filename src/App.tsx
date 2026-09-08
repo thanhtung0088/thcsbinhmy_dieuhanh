@@ -14,12 +14,11 @@ import { KeHoachTruong } from './pages/KeHoachTruong';
 import { QuanTri } from './pages/QuanTri';
 import { DichVuCong } from './pages/DichVuCong';
 import { PhanTichDuBao } from './pages/PhanTichDuBao';
+import { AiAgentKpi } from './pages/AiAgentKpi';
 
 const LATER_PHASE_ROUTES: { path: string; label: string; phase: string; departmentKey?: string }[] = [
   { path: '/cong-tac-dang', label: 'Công tác Đảng', phase: 'Phase 2' },
   { path: '/cong-viec', label: 'Công việc / giao việc', phase: 'Phase 2' },
-  { path: '/ai-agent', label: 'AI Agent', phase: 'Phase 6' },
-  { path: '/kpi', label: 'KPI', phase: 'Phase 5' },
   { path: '/co-so-vat-chat', label: 'Cơ sở vật chất & tài sản', phase: 'Phase 4', departmentKey: 'Cơ sở vật chất' },
   { path: '/tai-chinh', label: 'Tài chính', phase: 'Phase 4' },
   { path: '/van-ban', label: 'Văn bản điện tử', phase: 'Phase 4' },
@@ -56,10 +55,13 @@ export default function App() {
         <Route path="/quan-tri" element={<QuanTri />} />
         <Route path="/dich-vu-cong" element={<DichVuCong />} />
         <Route path="/phan-tich" element={<PhanTichDuBao />} />
+        <Route path="/ai-agent-kpi" element={<AiAgentKpi />} />
         {/* Đường dẫn cũ trước khi gộp menu — chuyển hướng để không vỡ link đã lưu */}
         <Route path="/chuyen-mon" element={<Navigate to="/quan-tri" replace />} />
         <Route path="/nhan-su" element={<Navigate to="/quan-tri" replace />} />
         <Route path="/nhan-su-chuyen-mon" element={<Navigate to="/quan-tri" replace />} />
+        <Route path="/ai-agent" element={<Navigate to="/ai-agent-kpi" replace />} />
+        <Route path="/kpi" element={<Navigate to="/ai-agent-kpi" replace />} />
         {LATER_PHASE_ROUTES.map((r) => (
           <Route
             key={r.path}

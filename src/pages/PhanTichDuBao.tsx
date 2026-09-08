@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Bot, Send, TrendingUp, BarChart3, Users, UserSquare2, Building2, GraduationCap, ClipboardList, FileText, Wrench, Wallet, Gauge, CalendarDays } from 'lucide-react';
+import { Bot, Send, TrendingUp, BarChart3, Users, UserSquare2, Building2, GraduationCap, ClipboardList, FileText, Wrench, Wallet, Gauge, CalendarDays, Sparkles, Loader2 } from 'lucide-react';
 import { CAMPUSES, KPI_SNAPSHOTS, TOTAL_STUDENTS, TASKS, DOCUMENTS, ALERTS, SUBJECT_GROUPS, TOTAL_PARTY_MEMBERS } from '../data/mockData';
 import { CLASSES } from '../data/classes';
 import { SendReportButton } from '../components/shared/WorkspaceActions';
@@ -48,44 +48,62 @@ function StatusBucket({ status, tasks }: { status: TaskStatus; tasks: Task[] }) 
 
 const GRADE_COLORS: Record<number, string> = { 6: 'bg-blue-500', 7: 'bg-emerald-500', 8: 'bg-amber-500', 9: 'bg-rose-500' };
 
-function answerFromData(question: string): string {
-  const q = question.toLowerCase();
-  if (q.includes('học sinh') && (q.includes('bao nhiêu') || q.includes('sĩ số') || q.includes('tổng'))) {
-    return `Toàn trường hiện có ${TOTAL_STUDENTS.toLocaleString('vi-VN')} học sinh (tính đến 06/09/2026), phân bố tại 4 điểm trường: ${CAMPUSES.map((c) => `${c.name} ${c.studentCount.toLocaleString('vi-VN')}`).join(', ')}.`;
-  }
-  if (q.includes('kpi')) {
-    const overall = KPI_SNAPSHOTS.find((k) => k.scope === 'Toàn trường');
-    return overall
-      ? `KPI toàn trường (minh họa) hiện ở mức ${overall.score}/100, xu hướng ${overall.trend === 'up' ? 'tăng' : overall.trend === 'down' ? 'giảm' : 'ổn định'}.`
-      : 'Chưa có dữ liệu để kết luận.';
-  }
-  if (q.includes('quá hạn')) {
-    const overdue = TASKS.filter((t) => t.status === 'qua_han');
-    return overdue.length === 0
-      ? 'Hiện không có nhiệm vụ nào quá hạn.'
-      : `Có ${overdue.length} nhiệm vụ quá hạn: ${overdue.map((t) => t.title).join('; ')}.`;
-  }
-  if (q.includes('lớp') && q.includes('nhiều')) {
-    const byCampus = CAMPUSES.map((c) => ({ name: c.name, count: c.classCount })).sort((a, b) => b.count - a.count);
-    return `${byCampus[0].name} có nhiều lớp nhất (${byCampus[0].count} lớp). Chi tiết: ${byCampus.map((c) => `${c.name} ${c.count}`).join(', ')}.`;
-  }
-  if (q.includes('giáo viên') || q.includes('nhân sự')) {
-    return 'Chưa có dữ liệu để kết luận về tổng nhân sự theo Điểm 2/Điểm 3 tách riêng — PCCM hiện chỉ ghi gộp theo "Đ2". Xem chi tiết tại menu Quản lý nhân sự - Chuyên môn.';
-  }
-  return 'Chưa có dữ liệu để kết luận. Hãy hỏi cụ thể hơn về học sinh, lớp, KPI, hoặc nhiệm vụ quá hạn.';
+function buildContextSnapshot() {
+  return {
+    tongHocSinh: TOTAL_STUDENTS,
+    diemTruong: CAMPUSES.map((c) => ({ ten: c.name, hocSinh: c.studentCount, lop: c.classCount })),
+    kpi: KPI_SNAPSHOTS.map((k) => ({ phamVi: k.scope, diem: k.score, xuHuong: k.trend })),
+    congViec: {
+      tong: TASKS.length,
+      quaHan: TASKS.filter((t) => t.status === 'qua_han').map((t) => t.title),
+      sapDenHan: TASKS.filter((t) => t.status === 'sap_den_han').length,
+      hoanThanh: TASKS.filter((t) => t.status === 'hoan_thanh').length,
+    },
+    canhBao: ALERTS.map((a) => a.message),
+    toChuyenMon: SUBJECT_GROUPS.map((g) => ({ ten: g.name, toTruong: g.ttcm?.name ?? 'chưa cập nhật' })),
+    dangBo: { soDangVien: TOTAL_PARTY_MEMBERS },
+  };
 }
 
 export function PhanTichDuBao() {
   const [messages, setMessages] = useState<{ role: 'user' | 'ai'; text: string }[]>([]);
   const [input, setInput] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const grades = [6, 7, 8, 9] as const;
   const maxGrade = Math.max(...grades.map((g) => CLASSES.filter((c) => c.grade === g).reduce((s, c) => s + c.total, 0)));
 
+  async function askGemini(payload: { message?: string; autoInsight?: boolean }) {
+    setLoading(true);
+    setError(null);
+    try {
+      const resp = await fetch('/api/gemini', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mode: 'phan-tich', context: buildContextSnapshot(), ...payload }),
+      });
+      const data = await resp.json();
+      if (!resp.ok) throw new Error(data?.error || 'Có lỗi xảy ra');
+      setMessages((prev) => [...prev, { role: 'ai', text: data.text || '(Không có phản hồi)' }]);
+    } catch (e: any) {
+      setError(e?.message ?? 'Không kết nối được AI Agent. Thử lại sau.');
+    } finally {
+      setLoading(false);
+    }
+  }
+
   function handleAsk() {
-    if (!input.trim()) return;
+    if (!input.trim() || loading) return;
     const question = input.trim();
-    setMessages((prev) => [...prev, { role: 'user', text: question }, { role: 'ai', text: answerFromData(question) }]);
+    setMessages((prev) => [...prev, { role: 'user', text: question }]);
     setInput('');
+    askGemini({ message: question });
+  }
+
+  function handleAutoInsight() {
+    if (loading) return;
+    setMessages((prev) => [...prev, { role: 'user', text: '🔎 Phân tích nhanh toàn trường' }]);
+    askGemini({ autoInsight: true });
   }
 
   return (
@@ -208,19 +226,33 @@ export function PhanTichDuBao() {
         <div className="rounded-xl border border-black/10 bg-white flex flex-col overflow-hidden">
           <div className="flex items-center gap-2 px-4 py-3 bg-hoa-950 text-white shrink-0">
             <Bot size={16} className="text-gold-400" />
-            <p className="text-sm font-semibold">AI Agent phân tích</p>
+            <p className="text-sm font-semibold flex-1">AI Agent phân tích</p>
+            <button
+              onClick={handleAutoInsight}
+              disabled={loading}
+              className="flex items-center gap-1 rounded-lg bg-white/10 hover:bg-white/20 px-2.5 py-1 text-[11px] font-medium disabled:opacity-40"
+            >
+              <Sparkles size={11} /> Phân tích nhanh
+            </button>
           </div>
           <div className="flex-1 overflow-y-auto p-3 space-y-2 min-h-[240px] max-h-[400px]">
             {messages.length === 0 && (
               <p className="text-xs text-ink/40 text-center py-6">
-                Hỏi ví dụ: "Tổng học sinh bao nhiêu?", "Việc nào quá hạn?", "Điểm nào nhiều lớp nhất?"
+                Hỏi ví dụ: "Tổng học sinh bao nhiêu?", "Việc nào quá hạn?", "Điểm nào nhiều lớp nhất?" — hoặc bấm
+                "Phân tích nhanh" để AI tự đưa nhận định.
               </p>
             )}
             {messages.map((m, i) => (
-              <div key={i} className={`text-xs rounded-lg px-3 py-2 max-w-[90%] ${m.role === 'user' ? 'bg-blue-600 text-white ml-auto' : 'bg-paper text-ink/80'}`}>
+              <div key={i} className={`text-xs rounded-lg px-3 py-2 max-w-[90%] whitespace-pre-wrap ${m.role === 'user' ? 'bg-blue-600 text-white ml-auto' : 'bg-paper text-ink/80'}`}>
                 {m.text}
               </div>
             ))}
+            {loading && (
+              <div className="text-xs rounded-lg px-3 py-2 max-w-[90%] bg-paper text-ink/40 flex items-center gap-1.5">
+                <Loader2 size={12} className="animate-spin" /> Đang phân tích...
+              </div>
+            )}
+            {error && <p className="text-[11px] text-signal-overdue">{error}</p>}
           </div>
           <div className="p-2 border-t border-black/10 flex gap-1.5 shrink-0">
             <input
@@ -230,7 +262,7 @@ export function PhanTichDuBao() {
               placeholder="Hỏi AI về dữ liệu trường…"
               className="flex-1 rounded-lg border border-black/10 px-3 py-1.5 text-xs focus-ring"
             />
-            <button onClick={handleAsk} className="rounded-lg bg-blue-600 text-white px-3 hover:bg-blue-700">
+            <button onClick={handleAsk} disabled={loading} className="rounded-lg bg-blue-600 text-white px-3 hover:bg-blue-700 disabled:opacity-40">
               <Send size={14} />
             </button>
           </div>
@@ -238,8 +270,8 @@ export function PhanTichDuBao() {
       </div>
 
       <p className="text-[11px] text-ink/40">
-        AI Agent ở đây chỉ tính toán trực tiếp trên dữ liệu đã có trong hệ thống (quy tắc cố định) — chưa nối mô hình
-        sinh ngôn ngữ thật (Gemini/OpenAI). Xem phần giải thích cách kết nối AI thật bên dưới cuộc trò chuyện.
+        AI Agent tại đây đã kết nối Gemini 2.5 Flash, trả lời dựa trên dữ liệu hiện có của trang (snapshot khi tải
+        trang). Với dữ liệu không có sẵn, AI sẽ nói rõ là chưa có thay vì suy đoán.
       </p>
     </div>
   );
