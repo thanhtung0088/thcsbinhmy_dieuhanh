@@ -1,13 +1,14 @@
-import { Search, Sparkles, Video, LogOut, Menu } from 'lucide-react';
+import { Sparkles, Video, LogOut, Menu } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { CAMPUSES } from '../../data/mockData';
 import { ROLE_LABELS } from '../../lib/rbac';
+import { GlobalSearch } from './GlobalSearch';
 
 export function Topbar({ onOpenSidebar }: { onOpenSidebar: () => void }) {
   const { user, activeCampus, setActiveCampus, logout } = useAuth();
 
   return (
-    <header className="flex items-center gap-3 md:gap-4 border-b border-black/10 bg-white px-3 md:px-6 py-3">
+    <header className="flex items-center gap-3 md:gap-4 border-b border-black/10 bg-white px-3 md:px-6 py-3 shrink-0">
       <button
         onClick={onOpenSidebar}
         aria-label="Mở menu"
@@ -16,14 +17,7 @@ export function Topbar({ onOpenSidebar }: { onOpenSidebar: () => void }) {
         <Menu size={20} />
       </button>
 
-      <div className="relative flex-1 max-w-md">
-        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink/40" />
-        <input
-          type="text"
-          placeholder="Tìm giáo viên, học sinh, văn bản, công việc…"
-          className="w-full rounded-lg border border-black/10 bg-paper py-2 pl-9 pr-3 text-sm focus-ring focus:outline-none"
-        />
-      </div>
+      <GlobalSearch />
 
       <select
         value={activeCampus}

@@ -14,7 +14,6 @@ import {
 } from 'lucide-react';
 import { CAMPUSES, LEADERSHIP, OFFICE_STAFF, PARTY_CELLS, SUBJECT_GROUPS, TOTAL_PARTY_MEMBERS } from '../data/mockData';
 import { MODULE_CARDS, MODULE_COLOR_CLASSES } from '../data/moduleMap';
-import { PageBanner } from '../components/layout/PageBanner';
 
 const CAMPUS_ACCENT: Record<string, { ring: string; badge: string; icon: string }> = {
   chinh: { ring: 'border-rose-200', badge: 'bg-rose-600', icon: 'text-rose-600' },
@@ -68,7 +67,6 @@ function Connector() {
 export function SystemMap() {
   return (
     <div className="space-y-4 -m-6 p-6 bg-[#eef1f6]">
-      <PageBanner />
 
       {/* Row: campuses / org chart / party cells / subject groups */}
       <div className="grid grid-cols-1 xl:grid-cols-[1.1fr_1.4fr_1fr_0.9fr] gap-4">

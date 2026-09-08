@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Search, Users, GraduationCap } from 'lucide-react';
 import { STAFF } from '../data/staff';
 import { CAMPUSES } from '../data/mockData';
@@ -14,9 +15,10 @@ type Tab = 'nhan_su' | 'chuyen_mon';
 
 export function NhanSuChuyenMon() {
   const { user } = useAuth();
+  const [searchParams] = useSearchParams();
   const [tab, setTab] = useState<Tab>('nhan_su');
   const [campusFilter, setCampusFilter] = useState<CampusId | 'all'>('all');
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState(searchParams.get('q') ?? '');
   const [pasted, setPasted] = useState<PastedTable | null>(null);
 
   // GV/NV chỉ xem — không thấy nút dán Excel để nạp/ghi đè danh sách

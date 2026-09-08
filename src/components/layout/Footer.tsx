@@ -56,8 +56,8 @@ export function Footer() {
           <ul className="mt-2 space-y-1 text-white/60">
             <li><Link to="/" className="hover:text-white">Trung tâm điều hành</Link></li>
             <li><Link to="/diem-truong" className="hover:text-white">3 điểm trường</Link></li>
-            <li><Link to="/so-do-he-thong" className="hover:text-white">Sơ đồ hệ thống</Link></li>
-            <li><Link to="/kho-hoc-lieu-so" className="hover:text-white">Kho học liệu số</Link></li>
+            <li><Link to="/gioi-thieu" className="hover:text-white">Giới thiệu</Link></li>
+            <li><Link to="/kho-tai-nguyen" className="hover:text-white">Kho tài nguyên và tiện ích</Link></li>
           </ul>
         </div>
 

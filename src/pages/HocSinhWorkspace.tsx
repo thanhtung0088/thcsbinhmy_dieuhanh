@@ -1,11 +1,16 @@
 import { useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { CAMPUSES, TOTAL_STUDENTS } from '../data/mockData';
 import { CLASSES } from '../data/classes';
 import type { CampusId } from '../types';
 import { DriveUploadButton, OnlineMeetingButton, SendReportButton } from '../components/shared/WorkspaceActions';
 
 export function HocSinhWorkspace() {
-  const [campus, setCampus] = useState<CampusId | 'all'>('all');
+  const [searchParams] = useSearchParams();
+  const highlightClass = searchParams.get('class');
+  const [campus, setCampus] = useState<CampusId | 'all'>(
+    highlightClass ? CLASSES.find((c) => c.name === highlightClass)?.campusId ?? 'all' : 'all'
+  );
 
   const classes = campus === 'all' ? CLASSES : CLASSES.filter((c) => c.campusId === campus);
   const grades = [6, 7, 8, 9] as const;
@@ -70,8 +75,11 @@ export function HocSinhWorkspace() {
                     <td></td>
                   </tr>
                   {gradeClasses.map((c) => (
-                    <tr key={c.name} className="border-b border-black/5 last:border-0">
-                      <td className="px-4 py-1.5 text-ink">{c.name}</td>
+                    <tr
+                      key={c.name}
+                      className={`border-b border-black/5 last:border-0 ${c.name === highlightClass ? 'bg-amber-50' : ''}`}
+                    >
+                      <td className="px-4 py-1.5 text-ink font-medium">{c.name}</td>
                       <td className="px-4 py-1.5 text-ink/50">
                         {CAMPUSES.find((cp) => cp.id === c.campusId)?.name}
                       </td>

@@ -4,6 +4,7 @@ import { Sidebar } from './Sidebar';
 import { Topbar } from './Topbar';
 import { MarqueeBar } from './MarqueeBar';
 import { Footer } from './Footer';
+import { PageBanner } from './PageBanner';
 
 export function AppLayout() {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
@@ -12,8 +13,9 @@ export function AppLayout() {
     <div className="flex h-screen w-full overflow-hidden">
       <Sidebar mobileOpen={mobileNavOpen} onClose={() => setMobileNavOpen(false)} />
       <div className="flex flex-1 flex-col min-w-0">
-        <Topbar onOpenSidebar={() => setMobileNavOpen(true)} />
+        <PageBanner />
         <MarqueeBar />
+        <Topbar onOpenSidebar={() => setMobileNavOpen(true)} />
         <main className="flex-1 overflow-y-auto bg-paper flex flex-col">
           <div className="flex-1 p-6">
             <Outlet />

@@ -36,11 +36,10 @@ interface NavItem {
 
 const NAV: NavItem[] = [
   { to: '/', label: 'Tổng quan', icon: LayoutGrid },
-  { to: '/so-do-he-thong', label: 'Sơ đồ hệ thống', icon: Map },
+  { to: '/gioi-thieu', label: 'Giới thiệu', icon: Map },
   { to: '/diem-truong', label: '4 điểm trường', icon: Building2 },
   { to: '/quan-tri', label: 'Quản trị', icon: Landmark },
   { to: '/cong-tac-dang', label: 'Công tác Đảng', icon: Flag },
-  { to: '/nhan-su-chuyen-mon', label: 'Quản lý nhân sự - Chuyên môn', icon: GraduationCap },
   { to: '/to-truong-cm', label: 'Tổ trưởng chuyên môn', icon: ToTruongIcon },
   { to: '/ke-hoach-truong', label: 'Kế hoạch trường', icon: BookOpenCheck },
   { to: '/hoc-sinh', label: 'Học sinh', icon: UserSquare2 },
@@ -57,7 +56,7 @@ const NAV: NavItem[] = [
   { to: '/bao-cao', label: 'Báo cáo', icon: FileBarChart2 },
   { to: '/thong-bao', label: 'Thông báo', icon: Bell },
   { to: '/dich-vu-cong', label: 'Dịch vụ công', icon: Globe2 },
-  { to: '/kho-hoc-lieu-so', label: 'Kho học liệu số', icon: BookMarked },
+  { to: '/kho-tai-nguyen', label: 'Kho tài nguyên và tiện ích', icon: BookMarked },
   { to: '/cai-dat', label: 'Cài đặt', icon: Settings },
 ];
 
