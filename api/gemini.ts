@@ -26,6 +26,23 @@ Quy tắc:
 - Có thể đưa ra nhận định, cảnh báo, gợi ý hành động dựa trên dữ liệu được cung cấp,
   nhưng luôn phân biệt rõ đâu là số liệu thật, đâu là nhận định/gợi ý của bạn.`;
 
+// Phần "nhập vai" bổ sung theo từng chức danh — ghép thêm vào sau
+// OPS_SYSTEM_CONTEXT để trợ lý ưu tiên đúng mối quan tâm của người hỏi.
+const PERSONA_CONTEXT: Record<string, string> = {
+  'hieu-truong': `Bạn đang nói chuyện với HIỆU TRƯỞNG. Ưu tiên: bức tranh tổng thể toàn trường, việc
+cần Hiệu trưởng ra quyết định/phê duyệt, cảnh báo rủi ro, KPI, so sánh giữa các tổ/điểm trường.
+Trả lời ở tầm quản lý cấp cao, không đi quá sâu vào chi tiết vụn vặt trừ khi được hỏi.`,
+  'pho-ht': `Bạn đang nói chuyện với PHÓ HIỆU TRƯỞNG. Ưu tiên: tiến độ công việc được phân công,
+nhắc việc, tổng hợp tình hình các tổ/mảng phụ trách, hỗ trợ chuẩn bị nội dung báo cáo lên Hiệu trưởng.`,
+  'to-truong-cm': `Bạn đang nói chuyện với TỔ TRƯỞNG CHUYÊN MÔN. Ưu tiên: sinh hoạt tổ, hồ sơ chuyên
+môn, nhiệm vụ Ban Giám hiệu giao cho tổ, gợi ý nội dung chuyên đề, nhắc hạn nộp báo cáo tổ.`,
+  'ke-toan': `Bạn đang nói chuyện với KẾ TOÁN trường. Ưu tiên: tài chính, thu-chi, dự toán, hạn nộp
+báo cáo tài chính, hỗ trợ soạn thảo văn bản/đề xuất liên quan tài chính. Tuyệt đối không tự bịa số
+liệu tài chính cụ thể nếu không có trong dữ liệu cung cấp — luôn nói rõ cần tra cứu sổ sách thực tế.`,
+  gvcn: `Bạn đang nói chuyện với GIÁO VIÊN CHỦ NHIỆM. Ưu tiên: tình hình lớp chủ nhiệm, sĩ số, liên
+lạc phụ huynh, soạn thông báo/thư mời họp phụ huynh, nhắc việc chủ nhiệm theo tuần.`,
+};
+
 const KPI_SYSTEM_CONTEXT = `Bạn là AI Agent hỗ trợ Hiệu trưởng Trường THCS Bình Mỹ tổng hợp kết quả
 tự đánh giá, xếp loại KPI quý của giáo viên/cán bộ.
 Bạn sẽ nhận một danh sách các bản tự đánh giá ĐÃ ĐƯỢC HỆ THỐNG TÍNH ĐIỂM SẴN
@@ -111,17 +128,19 @@ Chỉ trả về đúng đoạn nội dung, không thêm tiêu đề, không th�
     }
 
     if (mode === 'ops-chat') {
-      // Trợ lý điều hành chung (nút "Hỏi AI" trên thanh trên cùng)
-      const { message, context } = body;
+      // Trợ lý điều hành chung (nút "Hỏi AI") — hoặc trợ lý theo vai trò
+      // (dải thẻ dưới thanh tìm kiếm) nếu có gửi kèm persona
+      const { message, context, persona } = body;
       if (!message || typeof message !== 'string') {
         return new Response(JSON.stringify({ error: 'Thiếu nội dung câu hỏi' }), { status: 400 });
       }
+      const system = persona && PERSONA_CONTEXT[persona] ? `${OPS_SYSTEM_CONTEXT}\n\n${PERSONA_CONTEXT[persona]}` : OPS_SYSTEM_CONTEXT;
       const prompt = context
         ? `Dữ liệu hiện có của trường (JSON, dùng để trả lời nếu liên quan, không bịa thêm ngoài đây):\n${JSON.stringify(
             context
           )}\n\nCâu hỏi: ${message}`
         : message;
-      const text = await callGemini(apiKey, OPS_SYSTEM_CONTEXT, prompt, 500);
+      const text = await callGemini(apiKey, system, prompt, 500);
       return new Response(JSON.stringify({ text }), {
         status: 200,
         headers: { 'Content-Type': 'application/json' },

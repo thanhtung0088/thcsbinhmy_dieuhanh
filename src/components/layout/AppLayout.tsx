@@ -5,6 +5,7 @@ import { Topbar } from './Topbar';
 import { MarqueeBar } from './MarqueeBar';
 import { Footer } from './Footer';
 import { PageBanner } from './PageBanner';
+import { AiRoleBar } from './AiRoleBar';
 import { GlobalAiAssistant } from '../shared/GlobalAiAssistant';
 
 export function AppLayout() {
@@ -17,6 +18,7 @@ export function AppLayout() {
         <PageBanner />
         <MarqueeBar />
         <Topbar onOpenSidebar={() => setMobileNavOpen(true)} />
+        <AiRoleBar />
         <main className="flex-1 overflow-y-auto bg-paper flex flex-col">
           <div className="flex-1 p-6">
             <Outlet />

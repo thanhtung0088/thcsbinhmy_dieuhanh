@@ -45,7 +45,7 @@ export function Topbar({ onOpenSidebar }: { onOpenSidebar: () => void }) {
       </a>
 
       <button
-        onClick={openAssistant}
+        onClick={() => openAssistant()}
         className="flex items-center gap-2 rounded-lg bg-hoa-950 px-3 md:px-3.5 py-2 text-sm font-medium text-white hover:bg-hoa-800 transition-colors shrink-0"
       >
         <Sparkles size={16} className="text-gold-400" />
