@@ -69,6 +69,18 @@ Quy tắc:
   (điểm thấp, nhiều nhiệm vụ trễ hạn), (4) Đề xuất hành động cụ thể cho Hiệu trưởng.
 - Luôn dùng đúng số điểm, tên, tỉ lệ đã cho trong dữ liệu — không bịa thêm số liệu.`;
 
+const EXTRACT_SYSTEM_CONTEXT = `Bạn là AI Agent giúp Ban Giám hiệu Trường THCS Bình Mỹ đọc văn bản/thông báo
+và lọc ra CÔNG VIỆC TRỌNG TÂM CỐT LÕI cần làm trong tuần, kèm ngày giờ thực hiện nếu văn bản có ghi.
+Quy tắc:
+- CHỈ trả về JSON hợp lệ, không thêm chữ nào khác, không dùng markdown, không bọc trong \`\`\`.
+- Định dạng: một mảng JSON các object {"task": "...", "datetime": "..."}.
+- "task": mô tả ngắn gọn, rõ hành động cụ thể (không chép nguyên văn cả câu dài trong văn bản).
+- "datetime": ngày/giờ thực hiện nếu văn bản có nêu (vd "08/09/2026", "14h thứ Ba 10/09"); để chuỗi
+  rỗng "" nếu văn bản không ghi rõ thời gian cho việc đó.
+- Chỉ liệt kê việc thật sự CỐT LÕI, TRỌNG TÂM (thường 3-8 việc) — bỏ qua chi tiết phụ, câu mở đầu,
+  căn cứ pháp lý, lời chào.
+- Nếu văn bản không có công việc cụ thể nào, trả về mảng rỗng [].`;
+
 interface GeminiPart {
   text: string;
 }
@@ -171,6 +183,32 @@ dựa trên dữ liệu trên: điểm cần chú ý, xu hướng, rủi ro/cả
         : `${dataBlock}\n\nCâu hỏi: ${message}`;
       const text = await callGemini(apiKey, OPS_SYSTEM_CONTEXT, prompt, 450);
       return new Response(JSON.stringify({ text }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    if (mode === 'extract-tasks') {
+      // Đọc văn bản/thông báo BGH dán vào, lọc ra công việc trọng tâm + ngày giờ
+      const { text: sourceText } = body;
+      if (!sourceText || typeof sourceText !== 'string' || !sourceText.trim()) {
+        return new Response(JSON.stringify({ error: 'Chưa có nội dung văn bản để phân tích' }), { status: 400 });
+      }
+      const raw = await callGemini(apiKey, EXTRACT_SYSTEM_CONTEXT, sourceText.slice(0, 12000), 700);
+      // Gemini đôi khi vẫn bọc \`\`\`json ... \`\`\` dù đã dặn — dọn trước khi parse
+      const cleaned = raw.replace(/^```json\s*|```$/g, '').trim();
+      let tasks: { task: string; datetime: string }[] = [];
+      try {
+        const parsed = JSON.parse(cleaned);
+        if (Array.isArray(parsed)) {
+          tasks = parsed
+            .filter((t) => t && typeof t.task === 'string' && t.task.trim())
+            .map((t) => ({ task: String(t.task).trim(), datetime: typeof t.datetime === 'string' ? t.datetime.trim() : '' }));
+        }
+      } catch {
+        return new Response(JSON.stringify({ error: 'AI trả về định dạng không đọc được, thử lại.' }), { status: 502 });
+      }
+      return new Response(JSON.stringify({ tasks }), {
         status: 200,
         headers: { 'Content-Type': 'application/json' },
       });

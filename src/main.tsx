@@ -6,6 +6,7 @@ import { AuthProvider } from './context/AuthContext';
 import { ReportsProvider } from './context/ReportsContext';
 import { AiAssistantProvider } from './context/AiAssistantContext';
 import { KpiProvider } from './context/KpiContext';
+import { UnlockProvider } from './context/UnlockContext';
 import './index.css';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
@@ -14,9 +15,11 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
       <AuthProvider>
         <ReportsProvider>
           <KpiProvider>
-            <AiAssistantProvider>
-              <App />
-            </AiAssistantProvider>
+            <UnlockProvider>
+              <AiAssistantProvider>
+                <App />
+              </AiAssistantProvider>
+            </UnlockProvider>
           </KpiProvider>
         </ReportsProvider>
       </AuthProvider>

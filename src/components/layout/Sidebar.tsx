@@ -4,7 +4,6 @@ import {
   Building2,
   Landmark,
   Flag,
-  Users,
   UserSquare2,
   ClipboardList,
   Bot,
@@ -23,10 +22,12 @@ import {
   BookMarked,
   GraduationCap as ToTruongIcon,
   BookOpenCheck,
+  Lock,
   X,
 } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { useUnlock } from '../../context/UnlockContext';
 import { can, type ModuleKey } from '../../lib/rbac';
 import { AdminAccessModal } from '../shared/AdminAccessModal';
 
@@ -34,13 +35,13 @@ interface NavItem {
   to: string;
   label: string;
   icon: typeof LayoutGrid;
-  moduleKey?: ModuleKey; // bỏ trống = luôn hiển thị (mục công khai/dùng chung)
+  moduleKey?: ModuleKey; // bỏ trống = mục công khai/dùng chung, không bao giờ khoá
 }
 
 const NAV: NavItem[] = [
-  { to: '/', label: 'Tổng quan', icon: LayoutGrid, moduleKey: 'tong_quan' },
+  { to: '/', label: 'Tổng quan', icon: LayoutGrid },
   { to: '/gioi-thieu', label: 'Giới thiệu', icon: Map },
-  { to: '/diem-truong', label: '4 điểm trường', icon: Building2, moduleKey: 'tong_quan' },
+  { to: '/diem-truong', label: '4 điểm trường', icon: Building2 },
   { to: '/quan-tri', label: 'Quản trị', icon: Landmark, moduleKey: 'quan_tri' },
   { to: '/cong-tac-dang', label: 'Công tác Đảng', icon: Flag, moduleKey: 'cong_tac_dang' },
   { to: '/to-truong-cm', label: 'Tổ trưởng chuyên môn', icon: ToTruongIcon, moduleKey: 'chuyen_mon' },
@@ -62,9 +63,6 @@ const NAV: NavItem[] = [
   { to: '/cai-dat', label: 'Cài đặt', icon: Settings, moduleKey: 'cai_dat' },
 ];
 
-// Only these are wired to real screens in Phase 1; the rest render
-// the "coming in Phase N" placeholder so the full IA is navigable
-// and reviewable from day one.
 export const IMPLEMENTED_ROUTES = new Set(['/', '/diem-truong']);
 
 interface SidebarProps {
@@ -74,6 +72,7 @@ interface SidebarProps {
 
 export function Sidebar({ mobileOpen, onClose }: SidebarProps) {
   const { user } = useAuth();
+  const { unlocked } = useUnlock();
   const [showAdminModal, setShowAdminModal] = useState(false);
   const clickCount = useRef(0);
   const clickTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -86,28 +85,22 @@ export function Sidebar({ mobileOpen, onClose }: SidebarProps) {
       setShowAdminModal(true);
       return;
     }
-    // Reset bộ đếm nếu bấm chậm (quá 1.2s giữa các lần bấm)
     clickTimer.current = setTimeout(() => {
       clickCount.current = 0;
     }, 1200);
   }
 
-  const visibleNav = NAV.filter((item) => {
-    if (!item.moduleKey) return true; // mục công khai / dùng chung cho mọi tài khoản đã đăng nhập
-    if (!user) return false;
-    if (user.role === 'super_admin') return true;
-    return can(user.role, item.moduleKey, 'view');
-  });
+  function isLocked(item: NavItem) {
+    if (!item.moduleKey) return false;
+    if (!user) return true;
+    if (user.role === 'super_admin') return false;
+    return !can(user.role, item.moduleKey, 'view') && !unlocked.has(item.moduleKey);
+  }
 
   return (
     <>
-      {/* Backdrop — mobile only, shown while drawer is open */}
       {mobileOpen && (
-        <div
-          className="fixed inset-0 z-30 bg-black/40 md:hidden"
-          onClick={onClose}
-          aria-hidden="true"
-        />
+        <div className="fixed inset-0 z-30 bg-black/40 md:hidden" onClick={onClose} aria-hidden="true" />
       )}
 
       <aside
@@ -146,27 +139,40 @@ export function Sidebar({ mobileOpen, onClose }: SidebarProps) {
         <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-0.5">
           {!user && (
             <p className="px-3 py-2 text-[11px] text-white/40 leading-relaxed">
-              Đăng nhập ở góc trên để mở đầy đủ chức năng. Chưa đăng nhập chỉ dùng được Dịch vụ công.
+              Đăng nhập để mở các mục bên dưới theo đúng vai trò. Chưa đăng nhập chỉ dùng được Dịch vụ công.
             </p>
           )}
-          {visibleNav.map(({ to, label, icon: Icon }) => (
-            <NavLink
-              key={to}
-              to={to}
-              end={to === '/'}
-              onClick={onClose}
-              className={({ isActive }) =>
-                `flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors ${
-                  isActive
-                    ? 'bg-hoa-700 text-white font-medium'
-                    : 'text-white/70 hover:bg-hoa-900 hover:text-white'
-                }`
-              }
-            >
-              <Icon size={17} strokeWidth={2} />
-              <span className="truncate">{label}</span>
-            </NavLink>
-          ))}
+          {NAV.map((item) => {
+            const locked = isLocked(item);
+            const guestBlocked = locked && !user;
+            return (
+              <NavLink
+                key={item.to}
+                to={guestBlocked ? '#' : item.to}
+                end={item.to === '/'}
+                onClick={(e) => {
+                  if (guestBlocked) {
+                    e.preventDefault();
+                    return;
+                  }
+                  onClose();
+                }}
+                className={({ isActive }) =>
+                  `flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors ${
+                    isActive && !locked
+                      ? 'bg-hoa-700 text-white font-medium'
+                      : locked
+                        ? 'text-white/35 hover:bg-hoa-900/60 hover:text-white/60'
+                        : 'text-white/70 hover:bg-hoa-900 hover:text-white'
+                  }`
+                }
+              >
+                <item.icon size={17} strokeWidth={2} />
+                <span className="truncate flex-1">{item.label}</span>
+                {locked && <Lock size={12} className="shrink-0 opacity-60" />}
+              </NavLink>
+            );
+          })}
         </nav>
         <div className="px-4 py-3 border-t border-white/10 text-[11px] text-white/40">
           01 nhà trường · 03 điểm trường · 01 dữ liệu

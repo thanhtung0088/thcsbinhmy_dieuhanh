@@ -2,7 +2,9 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import type { ReactElement } from 'react';
 import { AppLayout } from './components/layout/AppLayout';
 import { useAuth } from './context/AuthContext';
+import { useUnlock } from './context/UnlockContext';
 import { can, type ModuleKey } from './lib/rbac';
+import { LockedModuleScreen } from './components/shared/LockedModuleScreen';
 import { Login } from './pages/Login';
 import { Dashboard } from './pages/Dashboard';
 import { CampusOverview } from './pages/CampusOverview';
@@ -18,14 +20,15 @@ import { DichVuCong } from './pages/DichVuCong';
 import { PhanTichDuBao } from './pages/PhanTichDuBao';
 import { AiAgentKpi } from './pages/AiAgentKpi';
 
-// Chặn truy cập trực tiếp bằng URL nếu tài khoản không có quyền "view"
-// module đó — không chỉ ẩn trên Sidebar mà còn khoá cả đường dẫn thẳng.
+// Ai đăng nhập cũng THẤY đủ menu/sidebar — chỉ khoá phần NỘI DUNG nếu chưa
+// đủ quyền theo vai trò và chưa nhập đúng mã mở khoá của khu vực đó.
 function RequireModule({ moduleKey, children }: { moduleKey: ModuleKey; children: ReactElement }) {
   const { user } = useAuth();
+  const { unlocked } = useUnlock();
   if (!user) return <Navigate to="/dich-vu-cong" replace />;
   if (user.role === 'super_admin') return children;
-  if (!can(user.role, moduleKey, 'view')) return <Navigate to="/" replace />;
-  return children;
+  if (can(user.role, moduleKey, 'view') || unlocked.has(moduleKey)) return children;
+  return <LockedModuleScreen moduleKey={moduleKey} />;
 }
 
 const LATER_PHASE_ROUTES: { path: string; label: string; phase: string; departmentKey?: string; moduleKey: ModuleKey }[] = [

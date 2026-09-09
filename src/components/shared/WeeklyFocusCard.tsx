@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react';
-import { CalendarRange, Paperclip, Plus, Sparkles, Trash2, X } from 'lucide-react';
+import { useState } from 'react';
+import { CalendarRange, Plus, Sparkles, Trash2, Loader2, FileText, ChevronDown, ChevronUp } from 'lucide-react';
 
 // Năm học 2026-2027 áp dụng phân công chuyên môn từ 07/09/2026 (Thứ Hai)
 // — dùng làm mốc Tuần 1 để tính ngày thật cho các tuần tiếp theo.
@@ -22,18 +22,31 @@ function currentWeekNumber() {
   return Math.min(Math.max(w, 1), TOTAL_WEEKS);
 }
 
+interface FocusItem {
+  id: string;
+  text: string;
+  datetime: string;
+}
+
 interface WeekData {
-  items: string[];
-  files: string[];
+  items: FocusItem[];
+}
+
+function newId() {
+  return Math.random().toString(36).slice(2, 9);
 }
 
 export function WeeklyFocusCard() {
   const [week, setWeek] = useState(currentWeekNumber());
   const [dataByWeek, setDataByWeek] = useState<Record<number, WeekData>>({});
   const [draft, setDraft] = useState('');
-  const [analysisNote, setAnalysisNote] = useState<string | null>(null);
+  const [showDocBox, setShowDocBox] = useState(false);
+  const [docText, setDocText] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [note, setNote] = useState<string | null>(null);
 
-  const current: WeekData = dataByWeek[week] ?? { items: [], files: [] };
+  const current: WeekData = dataByWeek[week] ?? { items: [] };
 
   function updateWeek(patch: Partial<WeekData>) {
     setDataByWeek((prev) => ({ ...prev, [week]: { ...current, ...patch } }));
@@ -41,36 +54,43 @@ export function WeeklyFocusCard() {
 
   function addItem() {
     if (!draft.trim()) return;
-    updateWeek({ items: [...current.items, draft.trim()] });
+    updateWeek({ items: [...current.items, { id: newId(), text: draft.trim(), datetime: '' }] });
     setDraft('');
   }
 
-  function removeItem(i: number) {
-    updateWeek({ items: current.items.filter((_, idx) => idx !== i) });
+  function removeItem(id: string) {
+    updateWeek({ items: current.items.filter((it) => it.id !== id) });
   }
 
-  function handleFiles(fileList: FileList | null) {
-    if (!fileList) return;
-    const names = Array.from(fileList)
-      .slice(0, Math.max(0, 5 - current.files.length))
-      .map((f) => f.name);
-    updateWeek({ files: [...current.files, ...names] });
-  }
-
-  function handleAnalyze() {
-    if (current.items.length === 0 && current.files.length === 0) {
-      setAnalysisNote('Chưa có dữ liệu để phân tích — hãy nhập công việc hoặc đính kèm tài liệu trước.');
-      return;
+  async function handleExtract() {
+    if (!docText.trim() || loading) return;
+    setLoading(true);
+    setError(null);
+    setNote(null);
+    try {
+      const resp = await fetch('/api/gemini', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mode: 'extract-tasks', text: docText }),
+      });
+      const data = await resp.json();
+      if (!resp.ok) throw new Error(data?.error || 'Có lỗi xảy ra');
+      const extracted: { task: string; datetime: string }[] = data.tasks || [];
+      if (extracted.length === 0) {
+        setNote('AI không tìm thấy công việc cụ thể nào trong văn bản này.');
+        return;
+      }
+      updateWeek({
+        items: [...current.items, ...extracted.map((t) => ({ id: newId(), text: t.task, datetime: t.datetime }))],
+      });
+      setNote(`AI đã lọc ra ${extracted.length} công việc trọng tâm từ văn bản, thêm vào danh sách bên dưới.`);
+      setDocText('');
+      setShowDocBox(false);
+    } catch (e: any) {
+      setError(e?.message ?? 'Không phân tích được. Thử lại sau.');
+    } finally {
+      setLoading(false);
     }
-    if (current.files.length > 0 && current.items.length === 0) {
-      setAnalysisNote(
-        `Đã lưu ${current.files.length} tệp làm minh chứng. Hệ thống hiện chưa nối AI thật để tự đọc nội dung file (cần backend, xem Phase 6) — vui lòng nhập tay các công việc trọng tâm để hiển thị ngay.`
-      );
-      return;
-    }
-    setAnalysisNote(
-      `Gợi ý tự động (rule-based, chưa phải AI thật): ${current.items.length} công việc đã liệt kê cho Tuần ${week}. Việc có từ khóa "gấp/hạn/khẩn" nên ưu tiên xử lý trước.`
-    );
   }
 
   return (
@@ -100,10 +120,13 @@ export function WeeklyFocusCard() {
 
         <ul className="space-y-1.5">
           {current.items.length === 0 && <li className="text-xs text-ink/30">Chưa có công việc nào.</li>}
-          {current.items.map((it, i) => (
-            <li key={i} className="flex items-center justify-between gap-2 text-sm text-ink/80 bg-paper rounded-lg px-3 py-1.5">
-              <span>{it}</span>
-              <button onClick={() => removeItem(i)} className="text-ink/30 hover:text-red-600 shrink-0">
+          {current.items.map((it) => (
+            <li key={it.id} className="flex items-center justify-between gap-2 text-sm text-ink/80 bg-paper rounded-lg px-3 py-1.5">
+              <span className="min-w-0">
+                {it.text}
+                {it.datetime && <span className="ml-2 text-[11px] font-medium text-blue-700">🕒 {it.datetime}</span>}
+              </span>
+              <button onClick={() => removeItem(it.id)} className="text-ink/30 hover:text-red-600 shrink-0">
                 <Trash2 size={13} />
               </button>
             </li>
@@ -123,44 +146,37 @@ export function WeeklyFocusCard() {
           </button>
         </div>
 
-        <div className="flex items-center justify-between pt-1">
-          <label className="flex items-center gap-1.5 text-xs font-medium text-blue-600 hover:text-blue-700 cursor-pointer">
-            <Paperclip size={13} />
-            Nạp tài liệu (tối đa 5 · Word/PDF/ảnh)
-            <input
-              type="file"
-              multiple
-              accept=".doc,.docx,.pdf,image/*"
-              className="hidden"
-              onChange={(e) => handleFiles(e.target.files)}
-              disabled={current.files.length >= 5}
-            />
-          </label>
-          <button
-            onClick={handleAnalyze}
-            className="flex items-center gap-1.5 rounded-lg bg-hoa-950 text-white text-xs font-medium px-3 py-1.5 hover:bg-hoa-800"
-          >
-            <Sparkles size={13} className="text-gold-400" /> Phân tích
-          </button>
-        </div>
+        <button
+          onClick={() => setShowDocBox((v) => !v)}
+          className="flex items-center gap-1.5 text-xs font-medium text-hoa-800 hover:text-hoa-950"
+        >
+          <FileText size={13} />
+          Dán văn bản để AI tự lọc công việc
+          {showDocBox ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
+        </button>
 
-        {current.files.length > 0 && (
-          <ul className="space-y-1">
-            {current.files.map((f, i) => (
-              <li key={i} className="flex items-center justify-between text-[11px] text-ink/50">
-                <span className="truncate">📎 {f}</span>
-                <button
-                  onClick={() => updateWeek({ files: current.files.filter((_, idx) => idx !== i) })}
-                  className="text-ink/30 hover:text-red-600 shrink-0"
-                >
-                  <X size={12} />
-                </button>
-              </li>
-            ))}
-          </ul>
+        {showDocBox && (
+          <div className="space-y-2 rounded-lg border border-black/10 p-3 bg-paper/60">
+            <textarea
+              value={docText}
+              onChange={(e) => setDocText(e.target.value)}
+              rows={5}
+              placeholder="Dán nội dung thông báo/công văn/kế hoạch vào đây… AI sẽ tự lọc ra việc trọng tâm và ngày giờ thực hiện."
+              className="w-full rounded-lg border border-black/10 px-3 py-2 text-xs focus-ring resize-none"
+            />
+            <button
+              onClick={handleExtract}
+              disabled={loading || !docText.trim()}
+              className="flex items-center gap-1.5 rounded-lg bg-hoa-950 text-white text-xs font-medium px-3 py-1.5 hover:bg-hoa-800 disabled:opacity-40"
+            >
+              {loading ? <Loader2 size={13} className="animate-spin" /> : <Sparkles size={13} className="text-gold-400" />}
+              {loading ? 'AI đang đọc...' : 'Phân tích bằng AI'}
+            </button>
+          </div>
         )}
 
-        {analysisNote && <p className="text-xs text-amber-700 bg-amber-50 rounded-lg px-3 py-2">{analysisNote}</p>}
+        {error && <p className="text-xs text-signal-overdue">{error}</p>}
+        {note && <p className="text-xs text-emerald-700 bg-emerald-50 rounded-lg px-3 py-2">{note}</p>}
       </div>
     </div>
   );
