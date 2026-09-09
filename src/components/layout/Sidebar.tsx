@@ -66,7 +66,7 @@ const NAV: NavItem[] = [
 // Khách chưa đăng nhập (phụ huynh, học sinh, người ngoài trường): CHỈ được
 // xem/dùng đúng 4 trang này — mọi mục khác trên Sidebar hiện khoá với họ,
 // kể cả những mục vốn "công khai" với người đã đăng nhập (vd Giới thiệu).
-const GUEST_ALLOWED_PATHS = new Set(['/', '/dich-vu-cong', '/kho-tai-nguyen', '/thong-bao']);
+const GUEST_ALLOWED_PATHS = new Set(['/', '/gioi-thieu', '/dich-vu-cong', '/kho-tai-nguyen', '/thong-bao']);
 
 export const IMPLEMENTED_ROUTES = new Set(['/', '/diem-truong']);
 

@@ -57,6 +57,7 @@ export default function App() {
       <Routes>
         <Route element={<AppLayout />}>
           <Route path="/" element={<Dashboard />} />
+          <Route path="/gioi-thieu" element={<SystemMap />} />
           <Route path="/dich-vu-cong" element={<DichVuCong />} />
           <Route path="/kho-tai-nguyen" element={<DigitalLibrary />} />
           <Route path="/thong-bao" element={<ThongBaoCong />} />
