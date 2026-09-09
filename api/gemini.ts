@@ -69,23 +69,26 @@ Quy tắc:
   (điểm thấp, nhiều nhiệm vụ trễ hạn), (4) Đề xuất hành động cụ thể cho Hiệu trưởng.
 - Luôn dùng đúng số điểm, tên, tỉ lệ đã cho trong dữ liệu — không bịa thêm số liệu.`;
 
-const EXTRACT_SYSTEM_CONTEXT = `Bạn là AI Agent giúp Ban Giám hiệu Trường THCS Bình Mỹ đọc văn bản/thông báo
-và lọc ra CÔNG VIỆC TRỌNG TÂM CỐT LÕI cần làm trong tuần, kèm ngày giờ thực hiện nếu văn bản có ghi.
+const EXTRACT_SYSTEM_CONTEXT = `Bạn là AI Agent giúp Ban Giám hiệu Trường THCS Bình Mỹ đọc văn bản/tài liệu
+(có thể là ảnh chụp, PDF, hoặc chữ) và lọc ra CÔNG VIỆC TRỌNG TÂM CỐT LÕI cần làm trong tuần, gán
+đúng vào TỪNG NGÀY cụ thể trong tuần nếu tài liệu có nêu.
 Quy tắc:
 - CHỈ trả về JSON hợp lệ, không thêm chữ nào khác, không dùng markdown, không bọc trong \`\`\`.
-- Định dạng: một mảng JSON các object {"task": "...", "datetime": "..."}.
+- Định dạng: một mảng JSON các object {"task": "...", "day": "...", "time": "..."}.
 - "task": mô tả ngắn gọn, rõ hành động cụ thể (không chép nguyên văn cả câu dài trong văn bản).
-- "datetime": ngày/giờ thực hiện nếu văn bản có nêu (vd "08/09/2026", "14h thứ Ba 10/09"); để chuỗi
-  rỗng "" nếu văn bản không ghi rõ thời gian cho việc đó.
-- Chỉ liệt kê việc thật sự CỐT LÕI, TRỌNG TÂM (thường 3-8 việc) — bỏ qua chi tiết phụ, câu mở đầu,
+- "day": PHẢI chọn đúng 1 trong các nhãn ngày được liệt kê sẵn trong phần "Các ngày trong tuần" bên
+  dưới (chép đúng nguyên văn nhãn đó, vd "Thứ Ba (09/09)"); nếu tài liệu không nói rõ việc đó vào
+  ngày nào, để "day" là chuỗi rỗng "".
+- "time": giờ cụ thể nếu tài liệu có nêu (vd "14h00"), để chuỗi rỗng "" nếu không có.
+- Chỉ liệt kê việc thật sự CỐT LÕI, TRỌNG TÂM (thường 3-10 việc) — bỏ qua chi tiết phụ, câu mở đầu,
   căn cứ pháp lý, lời chào.
-- Nếu văn bản không có công việc cụ thể nào, trả về mảng rỗng [].`;
+- Nếu tài liệu không có công việc cụ thể nào, trả về mảng rỗng [].`;
 
 interface GeminiPart {
   text: string;
 }
 
-async function callGemini(apiKey: string, systemText: string, userText: string, maxOutputTokens = 400) {
+async function callGeminiParts(apiKey: string, systemText: string, parts: any[], maxOutputTokens = 400) {
   const resp = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent`,
     {
@@ -98,7 +101,7 @@ async function callGemini(apiKey: string, systemText: string, userText: string, 
       },
       body: JSON.stringify({
         systemInstruction: { parts: [{ text: systemText }] },
-        contents: [{ role: 'user', parts: [{ text: userText }] }],
+        contents: [{ role: 'user', parts }],
         generationConfig: { temperature: 0.4, maxOutputTokens },
       }),
     }
@@ -110,8 +113,12 @@ async function callGemini(apiKey: string, systemText: string, userText: string, 
   }
 
   const data = await resp.json();
-  const parts: GeminiPart[] = data?.candidates?.[0]?.content?.parts ?? [];
-  return parts.map((p) => p.text).join('').trim();
+  const outParts: GeminiPart[] = data?.candidates?.[0]?.content?.parts ?? [];
+  return outParts.map((p) => p.text).join('').trim();
+}
+
+async function callGemini(apiKey: string, systemText: string, userText: string, maxOutputTokens = 400) {
+  return callGeminiParts(apiKey, systemText, [{ text: userText }], maxOutputTokens);
 }
 
 export default async function handler(req: Request) {
@@ -189,21 +196,49 @@ dựa trên dữ liệu trên: điểm cần chú ý, xu hướng, rủi ro/cả
     }
 
     if (mode === 'extract-tasks') {
-      // Đọc văn bản/thông báo BGH dán vào, lọc ra công việc trọng tâm + ngày giờ
-      const { text: sourceText } = body;
-      if (!sourceText || typeof sourceText !== 'string' || !sourceText.trim()) {
-        return new Response(JSON.stringify({ error: 'Chưa có nội dung văn bản để phân tích' }), { status: 400 });
+      // Đọc tài liệu (file Word→text đã trích ở client, hoặc ảnh/PDF gửi thẳng)
+      // để lọc công việc trọng tâm, gán đúng theo từng ngày trong tuần.
+      const { texts, files, weekDates } = body as {
+        texts?: string[];
+        files?: { mimeType: string; data: string }[];
+        weekDates?: { label: string; date: string }[];
+      };
+      const hasText = Array.isArray(texts) && texts.some((t) => t && t.trim());
+      const hasFiles = Array.isArray(files) && files.length > 0;
+      if (!hasText && !hasFiles) {
+        return new Response(JSON.stringify({ error: 'Chưa có tài liệu nào để phân tích' }), { status: 400 });
       }
-      const raw = await callGemini(apiKey, EXTRACT_SYSTEM_CONTEXT, sourceText.slice(0, 12000), 700);
-      // Gemini đôi khi vẫn bọc \`\`\`json ... \`\`\` dù đã dặn — dọn trước khi parse
+      const daysList = (weekDates || []).map((d) => `- ${d.label}`).join('\n');
+      const promptText = `Các ngày trong tuần đang xét (dùng đúng nguyên văn nhãn này cho trường "day"):
+${daysList || '(không có thông tin ngày cụ thể)'}
+
+Hãy đọc (các) tài liệu đính kèm bên dưới và lọc công việc trọng tâm theo đúng hướng dẫn.`;
+
+      const parts: any[] = [{ text: promptText }];
+      if (hasFiles) {
+        for (const f of files!.slice(0, 2)) {
+          parts.push({ inline_data: { mime_type: f.mimeType, data: f.data } });
+        }
+      }
+      if (hasText) {
+        for (const t of texts!) {
+          if (t && t.trim()) parts.push({ text: t.slice(0, 12000) });
+        }
+      }
+
+      const raw = await callGeminiParts(apiKey, EXTRACT_SYSTEM_CONTEXT, parts, 900);
       const cleaned = raw.replace(/^```json\s*|```$/g, '').trim();
-      let tasks: { task: string; datetime: string }[] = [];
+      let tasks: { task: string; day: string; time: string }[] = [];
       try {
         const parsed = JSON.parse(cleaned);
         if (Array.isArray(parsed)) {
           tasks = parsed
             .filter((t) => t && typeof t.task === 'string' && t.task.trim())
-            .map((t) => ({ task: String(t.task).trim(), datetime: typeof t.datetime === 'string' ? t.datetime.trim() : '' }));
+            .map((t) => ({
+              task: String(t.task).trim(),
+              day: typeof t.day === 'string' ? t.day.trim() : '',
+              time: typeof t.time === 'string' ? t.time.trim() : '',
+            }));
         }
       } catch {
         return new Response(JSON.stringify({ error: 'AI trả về định dạng không đọc được, thử lại.' }), { status: 502 });

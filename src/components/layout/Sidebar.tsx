@@ -46,7 +46,6 @@ const NAV: NavItem[] = [
   { to: '/cong-tac-dang', label: 'Công tác Đảng', icon: Flag, moduleKey: 'cong_tac_dang' },
   { to: '/to-truong-cm', label: 'Tổ trưởng chuyên môn', icon: ToTruongIcon, moduleKey: 'chuyen_mon' },
   { to: '/ke-hoach-truong', label: 'Kế hoạch trường', icon: BookOpenCheck, moduleKey: 'chuyen_mon' },
-  { to: '/hoc-sinh', label: 'Học sinh', icon: UserSquare2, moduleKey: 'hoc_sinh' },
   { to: '/cong-viec', label: 'Công việc', icon: ClipboardList, moduleKey: 'cong_viec' },
   { to: '/ai-agent-kpi', label: 'AI Agent & KPI', icon: Bot, moduleKey: 'ai_agent' },
   { to: '/co-so-vat-chat', label: 'Cơ sở vật chất', icon: Wrench, moduleKey: 'co_so_vat_chat' },
@@ -57,11 +56,17 @@ const NAV: NavItem[] = [
   { to: '/thi-dua', label: 'Thi đua', icon: Trophy, moduleKey: 'thi_dua' },
   { to: '/phan-tich', label: 'Phân tích và dự báo', icon: LineChart, moduleKey: 'phan_tich' },
   { to: '/bao-cao', label: 'Báo cáo', icon: FileBarChart2, moduleKey: 'bao_cao' },
-  { to: '/thong-bao', label: 'Thông báo', icon: Bell, moduleKey: 'thong_bao' },
+  { to: '/thong-bao', label: 'Thông báo', icon: Bell },
   { to: '/dich-vu-cong', label: 'Dịch vụ công', icon: Globe2 },
+  { to: '/hoc-sinh', label: 'Học sinh', icon: UserSquare2, moduleKey: 'hoc_sinh' },
   { to: '/kho-tai-nguyen', label: 'Kho tài nguyên và tiện ích', icon: BookMarked },
   { to: '/cai-dat', label: 'Cài đặt', icon: Settings, moduleKey: 'cai_dat' },
 ];
+
+// Khách chưa đăng nhập (phụ huynh, học sinh, người ngoài trường): CHỈ được
+// xem/dùng đúng 4 trang này — mọi mục khác trên Sidebar hiện khoá với họ,
+// kể cả những mục vốn "công khai" với người đã đăng nhập (vd Giới thiệu).
+const GUEST_ALLOWED_PATHS = new Set(['/', '/dich-vu-cong', '/kho-tai-nguyen', '/thong-bao']);
 
 export const IMPLEMENTED_ROUTES = new Set(['/', '/diem-truong']);
 
@@ -91,9 +96,9 @@ export function Sidebar({ mobileOpen, onClose }: SidebarProps) {
   }
 
   function isLocked(item: NavItem) {
-    if (!item.moduleKey) return false;
-    if (!user) return true;
+    if (!user) return !GUEST_ALLOWED_PATHS.has(item.to);
     if (user.role === 'super_admin') return false;
+    if (!item.moduleKey) return false;
     return !can(user.role, item.moduleKey, 'view') && !unlocked.has(item.moduleKey);
   }
 
@@ -139,7 +144,8 @@ export function Sidebar({ mobileOpen, onClose }: SidebarProps) {
         <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-0.5">
           {!user && (
             <p className="px-3 py-2 text-[11px] text-white/40 leading-relaxed">
-              Đăng nhập để mở các mục bên dưới theo đúng vai trò. Chưa đăng nhập chỉ dùng được Dịch vụ công.
+              Đăng nhập để mở các mục bên dưới theo đúng vai trò. Chưa đăng nhập chỉ dùng được Tổng quan, Dịch vụ
+              công, Kho tài nguyên và Thông báo chung.
             </p>
           )}
           {NAV.map((item) => {

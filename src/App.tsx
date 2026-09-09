@@ -20,12 +20,14 @@ import { DichVuCong } from './pages/DichVuCong';
 import { PhanTichDuBao } from './pages/PhanTichDuBao';
 import { AiAgentKpi } from './pages/AiAgentKpi';
 
+import { ThongBaoCong } from './pages/ThongBaoCong';
+
 // Ai đăng nhập cũng THẤY đủ menu/sidebar — chỉ khoá phần NỘI DUNG nếu chưa
 // đủ quyền theo vai trò và chưa nhập đúng mã mở khoá của khu vực đó.
 function RequireModule({ moduleKey, children }: { moduleKey: ModuleKey; children: ReactElement }) {
   const { user } = useAuth();
   const { unlocked } = useUnlock();
-  if (!user) return <Navigate to="/dich-vu-cong" replace />;
+  if (!user) return <Navigate to="/" replace />;
   if (user.role === 'super_admin') return children;
   if (can(user.role, moduleKey, 'view') || unlocked.has(moduleKey)) return children;
   return <LockedModuleScreen moduleKey={moduleKey} />;
@@ -41,7 +43,6 @@ const LATER_PHASE_ROUTES: { path: string; label: string; phase: string; departme
   { path: '/kiem-tra', label: 'Kiểm tra nội bộ', phase: 'Phase 5', moduleKey: 'kiem_tra' },
   { path: '/thi-dua', label: 'Thi đua – khen thưởng', phase: 'Phase 5', departmentKey: 'Thi đua', moduleKey: 'thi_dua' },
   { path: '/bao-cao', label: 'Báo cáo thông minh', phase: 'Phase 5', moduleKey: 'bao_cao' },
-  { path: '/thong-bao', label: 'Thông báo', phase: 'Phase 2', moduleKey: 'thong_bao' },
   { path: '/cai-dat', label: 'Cài đặt', phase: 'Phase 8', moduleKey: 'cai_dat' },
 ];
 
@@ -49,15 +50,18 @@ export default function App() {
   const { user } = useAuth();
 
   if (!user) {
-    // Chưa đăng nhập: chỉ xem/dùng được Dịch vụ công. Vẫn hiển thị đủ
-    // banner/topbar (AppLayout) để có nút "Đăng nhập" và có thể bấm logo
-    // 3 lần vào Admin — chỉ khác là menu bị khoá gần hết (xem Sidebar.tsx).
+    // Khách (chưa đăng nhập): CHỈ xem/dùng được 4 trang này — mọi đường
+    // dẫn khác tự chuyển về Tổng quan. Vẫn hiển thị đủ banner/topbar
+    // (AppLayout) để có nút "Đăng nhập" và có thể bấm logo 3 lần vào Admin.
     return (
       <Routes>
         <Route element={<AppLayout />}>
+          <Route path="/" element={<Dashboard />} />
           <Route path="/dich-vu-cong" element={<DichVuCong />} />
+          <Route path="/kho-tai-nguyen" element={<DigitalLibrary />} />
+          <Route path="/thong-bao" element={<ThongBaoCong />} />
           <Route path="/login" element={<Login />} />
-          <Route path="*" element={<Navigate to="/dich-vu-cong" replace />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>
     );
@@ -78,6 +82,7 @@ export default function App() {
         <Route path="/dich-vu-cong" element={<DichVuCong />} />
         <Route path="/phan-tich" element={<RequireModule moduleKey="phan_tich"><PhanTichDuBao /></RequireModule>} />
         <Route path="/ai-agent-kpi" element={<RequireModule moduleKey="ai_agent"><AiAgentKpi /></RequireModule>} />
+        <Route path="/thong-bao" element={<ThongBaoCong />} />
         {/* Đường dẫn cũ trước khi gộp menu — chuyển hướng để không vỡ link đã lưu */}
         <Route path="/chuyen-mon" element={<Navigate to="/quan-tri" replace />} />
         <Route path="/nhan-su" element={<Navigate to="/quan-tri" replace />} />

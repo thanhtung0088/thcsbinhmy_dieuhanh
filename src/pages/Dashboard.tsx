@@ -12,7 +12,7 @@ function filterByCampus<T extends { campusId: string }>(items: T[], campusId: st
 }
 
 export function Dashboard() {
-  const { activeCampus } = useAuth();
+  const { activeCampus, user } = useAuth();
   const [dvcTab, setDvcTab] = useState(DICH_VU_CONG_TABS[0].id);
   const [openService, setOpenService] = useState<string | null>(null);
 
@@ -39,22 +39,24 @@ export function Dashboard() {
         </p>
       </div>
 
-      {/* Hôm nay Hiệu trưởng cần biết gì — tóm tắt cực ngắn, chi tiết đầy đủ ở Phân tích và dự báo */}
-      <div className="rounded-xl bg-blue-50 border border-blue-100 p-4 flex items-center justify-between gap-3 flex-wrap">
-        <div className="flex items-center gap-2">
-          <AlertTriangle size={17} className="text-blue-600 shrink-0" />
-          <p className="text-sm text-blue-900">
-            <span className="font-semibold">{overdueCount}</span> quá hạn ·{' '}
-            <span className="font-semibold">{pendingApproval}</span> chờ duyệt ·{' '}
-            <span className="font-semibold">{alerts.length}</span> cảnh báo
-          </p>
+      {/* Hôm nay Hiệu trưởng cần biết gì — chỉ dành cho cán bộ đã đăng nhập, không hiện với khách */}
+      {user && (
+        <div className="rounded-xl bg-blue-50 border border-blue-100 p-4 flex items-center justify-between gap-3 flex-wrap">
+          <div className="flex items-center gap-2">
+            <AlertTriangle size={17} className="text-blue-600 shrink-0" />
+            <p className="text-sm text-blue-900">
+              <span className="font-semibold">{overdueCount}</span> quá hạn ·{' '}
+              <span className="font-semibold">{pendingApproval}</span> chờ duyệt ·{' '}
+              <span className="font-semibold">{alerts.length}</span> cảnh báo
+            </p>
+          </div>
+          <Link to="/phan-tich" className="flex items-center gap-1 text-xs font-medium text-blue-700 hover:text-blue-900">
+            <LineChart size={13} /> Xem phân tích chi tiết
+          </Link>
         </div>
-        <Link to="/phan-tich" className="flex items-center gap-1 text-xs font-medium text-blue-700 hover:text-blue-900">
-          <LineChart size={13} /> Xem phân tích chi tiết
-        </Link>
-      </div>
+      )}
 
-      <div className="grid lg:grid-cols-2 gap-4">
+      <div className={`grid gap-4 ${user ? 'lg:grid-cols-2' : ''}`}>
         {/* Left: Dịch vụ công */}
         <div className="rounded-xl border border-black/10 bg-white overflow-hidden">
           <div className="flex items-center justify-between px-4 py-3 bg-blue-600 text-white">
@@ -90,8 +92,8 @@ export function Dashboard() {
           </div>
         </div>
 
-        {/* Right: Công việc trọng tâm trong tuần */}
-        <WeeklyFocusCard />
+        {/* Right: Công việc trọng tâm trong tuần — chỉ dành cho cán bộ đã đăng nhập */}
+        {user && <WeeklyFocusCard />}
       </div>
 
       {openService && (
