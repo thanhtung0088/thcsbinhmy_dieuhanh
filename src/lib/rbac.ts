@@ -103,14 +103,47 @@ const MATRIX: Partial<Record<RoleId, Partial<Record<ModuleKey, Permission[]>>>> 
     cong_viec: ['view', 'create', 'assign'],
     thong_bao: ['view', 'create'],
   },
+  giao_vien: {
+    tong_quan: ['view'],
+    chuyen_mon: ['view'],
+    cong_viec: ['view'],
+    ai_agent: ['view', 'create'],
+    kpi: ['view', 'create'],
+    thong_bao: ['view'],
+  },
   ke_toan: {
     tong_quan: ['view'],
     tai_chinh: ['view', 'create', 'edit', 'export', 'report'],
+    thong_bao: ['view'],
   },
-  giao_vien: {
+  van_thu: {
     tong_quan: ['view'],
-    cong_viec: ['view'],
-    ai_agent: ['view', 'create'],
+    quan_tri: ['view'],
+    van_ban: ['view', 'create', 'edit'],
+    thong_bao: ['view', 'create'],
+  },
+  thiet_bi: {
+    tong_quan: ['view'],
+    co_so_vat_chat: ['view', 'create', 'edit'],
+    thong_bao: ['view'],
+  },
+  thu_vien: {
+    tong_quan: ['view'],
+    co_so_vat_chat: ['view'],
+    thong_bao: ['view'],
+  },
+  y_te: {
+    tong_quan: ['view'],
+    hoc_sinh: ['view'],
+    thong_bao: ['view'],
+  },
+  bao_ve: {
+    tong_quan: ['view'],
+    co_so_vat_chat: ['view'],
+    thong_bao: ['view'],
+  },
+  nhan_vien: {
+    tong_quan: ['view'],
     thong_bao: ['view'],
   },
 };

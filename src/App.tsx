@@ -1,6 +1,8 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
+import type { ReactElement } from 'react';
 import { AppLayout } from './components/layout/AppLayout';
 import { useAuth } from './context/AuthContext';
+import { can, type ModuleKey } from './lib/rbac';
 import { Login } from './pages/Login';
 import { Dashboard } from './pages/Dashboard';
 import { CampusOverview } from './pages/CampusOverview';
@@ -16,27 +18,44 @@ import { DichVuCong } from './pages/DichVuCong';
 import { PhanTichDuBao } from './pages/PhanTichDuBao';
 import { AiAgentKpi } from './pages/AiAgentKpi';
 
-const LATER_PHASE_ROUTES: { path: string; label: string; phase: string; departmentKey?: string }[] = [
-  { path: '/cong-tac-dang', label: 'Công tác Đảng', phase: 'Phase 2' },
-  { path: '/cong-viec', label: 'Công việc / giao việc', phase: 'Phase 2' },
-  { path: '/co-so-vat-chat', label: 'Cơ sở vật chất & tài sản', phase: 'Phase 4', departmentKey: 'Cơ sở vật chất' },
-  { path: '/tai-chinh', label: 'Tài chính', phase: 'Phase 4' },
-  { path: '/van-ban', label: 'Văn bản điện tử', phase: 'Phase 4' },
-  { path: '/lich-cong-tac', label: 'Lịch công tác', phase: 'Phase 2' },
-  { path: '/kiem-tra', label: 'Kiểm tra nội bộ', phase: 'Phase 5' },
-  { path: '/thi-dua', label: 'Thi đua – khen thưởng', phase: 'Phase 5', departmentKey: 'Thi đua' },
-  { path: '/bao-cao', label: 'Báo cáo thông minh', phase: 'Phase 5' },
-  { path: '/thong-bao', label: 'Thông báo', phase: 'Phase 2' },
-  { path: '/cai-dat', label: 'Cài đặt', phase: 'Phase 8' },
+// Chặn truy cập trực tiếp bằng URL nếu tài khoản không có quyền "view"
+// module đó — không chỉ ẩn trên Sidebar mà còn khoá cả đường dẫn thẳng.
+function RequireModule({ moduleKey, children }: { moduleKey: ModuleKey; children: ReactElement }) {
+  const { user } = useAuth();
+  if (!user) return <Navigate to="/dich-vu-cong" replace />;
+  if (user.role === 'super_admin') return children;
+  if (!can(user.role, moduleKey, 'view')) return <Navigate to="/" replace />;
+  return children;
+}
+
+const LATER_PHASE_ROUTES: { path: string; label: string; phase: string; departmentKey?: string; moduleKey: ModuleKey }[] = [
+  { path: '/cong-tac-dang', label: 'Công tác Đảng', phase: 'Phase 2', moduleKey: 'cong_tac_dang' },
+  { path: '/cong-viec', label: 'Công việc / giao việc', phase: 'Phase 2', moduleKey: 'cong_viec' },
+  { path: '/co-so-vat-chat', label: 'Cơ sở vật chất & tài sản', phase: 'Phase 4', departmentKey: 'Cơ sở vật chất', moduleKey: 'co_so_vat_chat' },
+  { path: '/tai-chinh', label: 'Tài chính', phase: 'Phase 4', moduleKey: 'tai_chinh' },
+  { path: '/van-ban', label: 'Văn bản điện tử', phase: 'Phase 4', moduleKey: 'van_ban' },
+  { path: '/lich-cong-tac', label: 'Lịch công tác', phase: 'Phase 2', moduleKey: 'lich_cong_tac' },
+  { path: '/kiem-tra', label: 'Kiểm tra nội bộ', phase: 'Phase 5', moduleKey: 'kiem_tra' },
+  { path: '/thi-dua', label: 'Thi đua – khen thưởng', phase: 'Phase 5', departmentKey: 'Thi đua', moduleKey: 'thi_dua' },
+  { path: '/bao-cao', label: 'Báo cáo thông minh', phase: 'Phase 5', moduleKey: 'bao_cao' },
+  { path: '/thong-bao', label: 'Thông báo', phase: 'Phase 2', moduleKey: 'thong_bao' },
+  { path: '/cai-dat', label: 'Cài đặt', phase: 'Phase 8', moduleKey: 'cai_dat' },
 ];
 
 export default function App() {
   const { user } = useAuth();
 
   if (!user) {
+    // Chưa đăng nhập: chỉ xem/dùng được Dịch vụ công. Vẫn hiển thị đủ
+    // banner/topbar (AppLayout) để có nút "Đăng nhập" và có thể bấm logo
+    // 3 lần vào Admin — chỉ khác là menu bị khoá gần hết (xem Sidebar.tsx).
     return (
       <Routes>
-        <Route path="*" element={<Login />} />
+        <Route element={<AppLayout />}>
+          <Route path="/dich-vu-cong" element={<DichVuCong />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="*" element={<Navigate to="/dich-vu-cong" replace />} />
+        </Route>
       </Routes>
     );
   }
@@ -48,14 +67,14 @@ export default function App() {
         <Route path="/diem-truong" element={<CampusOverview />} />
         <Route path="/diem-truong/:campusId" element={<CampusDetail />} />
         <Route path="/gioi-thieu" element={<SystemMap />} />
-        <Route path="/hoc-sinh" element={<HocSinhWorkspace />} />
+        <Route path="/hoc-sinh" element={<RequireModule moduleKey="hoc_sinh"><HocSinhWorkspace /></RequireModule>} />
         <Route path="/kho-tai-nguyen" element={<DigitalLibrary />} />
-        <Route path="/to-truong-cm" element={<ToTruongCM />} />
-        <Route path="/ke-hoach-truong" element={<KeHoachTruong />} />
-        <Route path="/quan-tri" element={<QuanTri />} />
+        <Route path="/to-truong-cm" element={<RequireModule moduleKey="chuyen_mon"><ToTruongCM /></RequireModule>} />
+        <Route path="/ke-hoach-truong" element={<RequireModule moduleKey="chuyen_mon"><KeHoachTruong /></RequireModule>} />
+        <Route path="/quan-tri" element={<RequireModule moduleKey="quan_tri"><QuanTri /></RequireModule>} />
         <Route path="/dich-vu-cong" element={<DichVuCong />} />
-        <Route path="/phan-tich" element={<PhanTichDuBao />} />
-        <Route path="/ai-agent-kpi" element={<AiAgentKpi />} />
+        <Route path="/phan-tich" element={<RequireModule moduleKey="phan_tich"><PhanTichDuBao /></RequireModule>} />
+        <Route path="/ai-agent-kpi" element={<RequireModule moduleKey="ai_agent"><AiAgentKpi /></RequireModule>} />
         {/* Đường dẫn cũ trước khi gộp menu — chuyển hướng để không vỡ link đã lưu */}
         <Route path="/chuyen-mon" element={<Navigate to="/quan-tri" replace />} />
         <Route path="/nhan-su" element={<Navigate to="/quan-tri" replace />} />
@@ -66,7 +85,11 @@ export default function App() {
           <Route
             key={r.path}
             path={r.path}
-            element={<DepartmentWorkspace moduleName={r.label} phase={r.phase} departmentKey={r.departmentKey} />}
+            element={
+              <RequireModule moduleKey={r.moduleKey}>
+                <DepartmentWorkspace moduleName={r.label} phase={r.phase} departmentKey={r.departmentKey} />
+              </RequireModule>
+            }
           />
         ))}
         <Route path="*" element={<Navigate to="/" replace />} />

@@ -6,6 +6,7 @@ interface AuthState {
   user: User | null;
   activeCampus: CampusId | 'all';
   login: (userId: string) => void;
+  loginAs: (user: User) => void;
   logout: () => void;
   setActiveCampus: (id: CampusId | 'all') => void;
   demoUsers: User[];
@@ -25,6 +26,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const found = DEMO_USERS.find((u) => u.id === userId);
         if (found) setUser(found);
       },
+      // Dùng cho lối vào Admin (bấm logo 3 lần + mã xác thực qua máy chủ) —
+      // không đi qua danh sách DEMO_USERS vì super_admin không hiển thị công khai.
+      loginAs: (u: User) => setUser(u),
       logout: () => setUser(null),
       setActiveCampus,
       demoUsers: DEMO_USERS,

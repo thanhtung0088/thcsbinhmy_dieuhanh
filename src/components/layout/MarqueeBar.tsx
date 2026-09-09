@@ -8,8 +8,8 @@ const MESSAGES = [
 export function MarqueeBar() {
   const text = MESSAGES.join('    •    ');
   return (
-    <div className="bg-blue-600 text-white overflow-hidden whitespace-nowrap">
-      <div className="inline-block py-1.5 marquee-track text-xs font-medium tracking-wide">
+    <div className="bg-white text-red-700 border-b border-black/5 overflow-hidden whitespace-nowrap">
+      <div className="inline-block py-1.5 marquee-track text-xs font-semibold tracking-wide">
         <span className="px-4">{text}</span>
         <span className="px-4">{text}</span>
       </div>

@@ -219,4 +219,12 @@ export const DEMO_USERS: User[] = [
   { id: 'u2', name: 'Nguyễn Thị Mến', role: 'pho_hieu_truong', campusId: 'diem1', avatarInitials: 'NM' },
   { id: 'u3', name: 'Nguyễn Thanh Nhàn', role: 'pho_hieu_truong', campusId: 'diem2', avatarInitials: 'NN' },
   { id: 'u4', name: 'Nguyễn Thị Minh Tâm', role: 'to_truong_vp', campusId: 'chinh', avatarInitials: 'MT' },
+  { id: 'u5', name: 'Nguyễn Thanh Tùng', role: 'giao_vien', campusId: 'chinh', avatarInitials: 'TT' },
+  { id: 'u6', name: 'Võ Thị Thống Nhất', role: 'to_truong_cm', campusId: 'chinh', avatarInitials: 'TN' },
+  { id: 'u7', name: 'Trần Văn Kế', role: 'ke_toan', campusId: 'all', avatarInitials: 'TK' },
+  { id: 'u8', name: 'Lê Thị Văn Thư', role: 'van_thu', campusId: 'chinh', avatarInitials: 'LT' },
+  { id: 'u9', name: 'Phạm Văn Bảo', role: 'bao_ve', campusId: 'chinh', avatarInitials: 'PB' },
+  { id: 'u10', name: 'Huỳnh Thị Thư Viện', role: 'thu_vien', campusId: 'chinh', avatarInitials: 'HV' },
+  { id: 'u11', name: 'Trần Thị Y Tế', role: 'y_te', campusId: 'chinh', avatarInitials: 'TY' },
+  { id: 'u12', name: 'Đỗ Văn Thiết Bị', role: 'thiet_bi', campusId: 'chinh', avatarInitials: 'DB' },
 ];

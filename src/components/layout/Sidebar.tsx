@@ -1,14 +1,13 @@
+import { useRef, useState } from 'react';
 import {
   LayoutGrid,
   Building2,
   Landmark,
   Flag,
-  GraduationCap,
   Users,
   UserSquare2,
   ClipboardList,
   Bot,
-  Gauge,
   Wrench,
   Wallet,
   FileText,
@@ -27,36 +26,40 @@ import {
   X,
 } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
+import { can, type ModuleKey } from '../../lib/rbac';
+import { AdminAccessModal } from '../shared/AdminAccessModal';
 
 interface NavItem {
   to: string;
   label: string;
   icon: typeof LayoutGrid;
+  moduleKey?: ModuleKey; // bỏ trống = luôn hiển thị (mục công khai/dùng chung)
 }
 
 const NAV: NavItem[] = [
-  { to: '/', label: 'Tổng quan', icon: LayoutGrid },
+  { to: '/', label: 'Tổng quan', icon: LayoutGrid, moduleKey: 'tong_quan' },
   { to: '/gioi-thieu', label: 'Giới thiệu', icon: Map },
-  { to: '/diem-truong', label: '4 điểm trường', icon: Building2 },
-  { to: '/quan-tri', label: 'Quản trị', icon: Landmark },
-  { to: '/cong-tac-dang', label: 'Công tác Đảng', icon: Flag },
-  { to: '/to-truong-cm', label: 'Tổ trưởng chuyên môn', icon: ToTruongIcon },
-  { to: '/ke-hoach-truong', label: 'Kế hoạch trường', icon: BookOpenCheck },
-  { to: '/hoc-sinh', label: 'Học sinh', icon: UserSquare2 },
-  { to: '/cong-viec', label: 'Công việc', icon: ClipboardList },
-  { to: '/ai-agent-kpi', label: 'AI Agent & KPI', icon: Bot },
-  { to: '/co-so-vat-chat', label: 'Cơ sở vật chất', icon: Wrench },
-  { to: '/tai-chinh', label: 'Tài chính', icon: Wallet },
-  { to: '/van-ban', label: 'Văn bản', icon: FileText },
-  { to: '/lich-cong-tac', label: 'Lịch công tác', icon: CalendarDays },
-  { to: '/kiem-tra', label: 'Kiểm tra', icon: ShieldCheck },
-  { to: '/thi-dua', label: 'Thi đua', icon: Trophy },
-  { to: '/phan-tich', label: 'Phân tích và dự báo', icon: LineChart },
-  { to: '/bao-cao', label: 'Báo cáo', icon: FileBarChart2 },
-  { to: '/thong-bao', label: 'Thông báo', icon: Bell },
+  { to: '/diem-truong', label: '4 điểm trường', icon: Building2, moduleKey: 'tong_quan' },
+  { to: '/quan-tri', label: 'Quản trị', icon: Landmark, moduleKey: 'quan_tri' },
+  { to: '/cong-tac-dang', label: 'Công tác Đảng', icon: Flag, moduleKey: 'cong_tac_dang' },
+  { to: '/to-truong-cm', label: 'Tổ trưởng chuyên môn', icon: ToTruongIcon, moduleKey: 'chuyen_mon' },
+  { to: '/ke-hoach-truong', label: 'Kế hoạch trường', icon: BookOpenCheck, moduleKey: 'chuyen_mon' },
+  { to: '/hoc-sinh', label: 'Học sinh', icon: UserSquare2, moduleKey: 'hoc_sinh' },
+  { to: '/cong-viec', label: 'Công việc', icon: ClipboardList, moduleKey: 'cong_viec' },
+  { to: '/ai-agent-kpi', label: 'AI Agent & KPI', icon: Bot, moduleKey: 'ai_agent' },
+  { to: '/co-so-vat-chat', label: 'Cơ sở vật chất', icon: Wrench, moduleKey: 'co_so_vat_chat' },
+  { to: '/tai-chinh', label: 'Tài chính', icon: Wallet, moduleKey: 'tai_chinh' },
+  { to: '/van-ban', label: 'Văn bản', icon: FileText, moduleKey: 'van_ban' },
+  { to: '/lich-cong-tac', label: 'Lịch công tác', icon: CalendarDays, moduleKey: 'lich_cong_tac' },
+  { to: '/kiem-tra', label: 'Kiểm tra', icon: ShieldCheck, moduleKey: 'kiem_tra' },
+  { to: '/thi-dua', label: 'Thi đua', icon: Trophy, moduleKey: 'thi_dua' },
+  { to: '/phan-tich', label: 'Phân tích và dự báo', icon: LineChart, moduleKey: 'phan_tich' },
+  { to: '/bao-cao', label: 'Báo cáo', icon: FileBarChart2, moduleKey: 'bao_cao' },
+  { to: '/thong-bao', label: 'Thông báo', icon: Bell, moduleKey: 'thong_bao' },
   { to: '/dich-vu-cong', label: 'Dịch vụ công', icon: Globe2 },
   { to: '/kho-tai-nguyen', label: 'Kho tài nguyên và tiện ích', icon: BookMarked },
-  { to: '/cai-dat', label: 'Cài đặt', icon: Settings },
+  { to: '/cai-dat', label: 'Cài đặt', icon: Settings, moduleKey: 'cai_dat' },
 ];
 
 // Only these are wired to real screens in Phase 1; the rest render
@@ -70,6 +73,32 @@ interface SidebarProps {
 }
 
 export function Sidebar({ mobileOpen, onClose }: SidebarProps) {
+  const { user } = useAuth();
+  const [showAdminModal, setShowAdminModal] = useState(false);
+  const clickCount = useRef(0);
+  const clickTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  function handleLogoClick() {
+    clickCount.current += 1;
+    if (clickTimer.current) clearTimeout(clickTimer.current);
+    if (clickCount.current >= 3) {
+      clickCount.current = 0;
+      setShowAdminModal(true);
+      return;
+    }
+    // Reset bộ đếm nếu bấm chậm (quá 1.2s giữa các lần bấm)
+    clickTimer.current = setTimeout(() => {
+      clickCount.current = 0;
+    }, 1200);
+  }
+
+  const visibleNav = NAV.filter((item) => {
+    if (!item.moduleKey) return true; // mục công khai / dùng chung cho mọi tài khoản đã đăng nhập
+    if (!user) return false;
+    if (user.role === 'super_admin') return true;
+    return can(user.role, item.moduleKey, 'view');
+  });
+
   return (
     <>
       {/* Backdrop — mobile only, shown while drawer is open */}
@@ -88,11 +117,17 @@ export function Sidebar({ mobileOpen, onClose }: SidebarProps) {
           ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}`}
       >
         <div className="px-5 py-6 border-b border-white/10 flex items-center gap-3">
-          <img
-            src="/logo-thcs-binh-my.png"
-            alt="Logo THCS Bình Mỹ"
-            className="h-11 w-11 rounded-full bg-white object-contain shrink-0"
-          />
+          <button
+            onClick={handleLogoClick}
+            title=""
+            className="h-11 w-11 rounded-full bg-white shrink-0 overflow-hidden focus:outline-none"
+          >
+            <img
+              src="/logo-thcs-binh-my.png"
+              alt="Logo THCS Bình Mỹ"
+              className="h-full w-full object-contain pointer-events-none select-none"
+            />
+          </button>
           <div className="flex-1 min-w-0">
             <p className="text-[11px] tracking-wide text-gold-400 font-semibold">TRẠM ĐIỀU HÀNH</p>
             <h1 className="text-base font-bold leading-tight">
@@ -109,7 +144,12 @@ export function Sidebar({ mobileOpen, onClose }: SidebarProps) {
           </button>
         </div>
         <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-0.5">
-          {NAV.map(({ to, label, icon: Icon }) => (
+          {!user && (
+            <p className="px-3 py-2 text-[11px] text-white/40 leading-relaxed">
+              Đăng nhập ở góc trên để mở đầy đủ chức năng. Chưa đăng nhập chỉ dùng được Dịch vụ công.
+            </p>
+          )}
+          {visibleNav.map(({ to, label, icon: Icon }) => (
             <NavLink
               key={to}
               to={to}
@@ -132,6 +172,8 @@ export function Sidebar({ mobileOpen, onClose }: SidebarProps) {
           01 nhà trường · 03 điểm trường · 01 dữ liệu
         </div>
       </aside>
+
+      {showAdminModal && <AdminAccessModal onClose={() => setShowAdminModal(false)} />}
     </>
   );
 }
