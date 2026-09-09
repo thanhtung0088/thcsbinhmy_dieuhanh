@@ -227,7 +227,18 @@ Hãy đọc (các) tài liệu đính kèm bên dưới và lọc công việc t
       }
 
       const raw = await callGeminiParts(apiKey, EXTRACT_SYSTEM_CONTEXT, parts, 900);
-      const cleaned = raw.replace(/^```json\s*|```$/g, '').trim();
+
+      // FIX: trước đây chỉ strip đúng y hệt ```json ... ``` ở đầu/cuối chuỗi.
+      // Gemini nhiều lúc chèn thêm câu mở đầu/kết thúc dù đã dặn không làm vậy
+      // (vd "Dưới đây là danh sách công việc:\n```json\n[...]\n```\nHy vọng
+      // giúp ích cho Thầy Cô!") khiến regex cũ không khớp -> JSON.parse lỗi ->
+      // báo "AI trả về định dạng không đọc được".
+      // Cách sửa: tìm đoạn mảng JSON [...] đầu tiên trong toàn bộ chuỗi trả
+      // về (dùng [\s\S] để match cả xuống dòng), bỏ qua mọi chữ thừa xung
+      // quanh. Chỉ khi không tìm thấy mảng nào mới fallback về cách strip cũ.
+      const match = raw.match(/\[[\s\S]*\]/);
+      const cleaned = match ? match[0] : raw.replace(/^```json\s*|```$/g, '').trim();
+
       let tasks: { task: string; day: string; time: string }[] = [];
       try {
         const parsed = JSON.parse(cleaned);
