@@ -1,95 +1,82 @@
-import { useState } from 'react';
 import { useGvcn } from '../../context/GvcnContext';
 
-export function SeatingChart({ className, total }: { className: string; total: number }) {
+const PER_COLUMN = 6;
+const COLUMN_COUNT = 4;
+const DESK_COUNT = PER_COLUMN * COLUMN_COUNT; // 24 bàn = 6 bàn/dãy x 4 dãy
+
+function DeskCell({ n, left, right, onChange }: { n: number; left: string; right: string; onChange: (side: 'trai' | 'phai', value: string) => void }) {
+  return (
+    <div className="grid grid-cols-[1fr_26px_1fr] rounded-lg overflow-hidden border border-blue-200 bg-white shrink-0">
+      <input
+        value={left}
+        onChange={(e) => onChange('trai', e.target.value)}
+        placeholder="Tên HS"
+        className="min-w-0 w-full px-1.5 py-2.5 text-[11px] text-center focus:outline-none focus:bg-blue-50"
+      />
+      <div className="bg-blue-600 text-white flex items-center justify-center text-[8px] font-bold leading-[1.1] px-0.5 text-center select-none">
+        Bàn
+        <br />
+        {n}
+      </div>
+      <input
+        value={right}
+        onChange={(e) => onChange('phai', e.target.value)}
+        placeholder="Tên HS"
+        className="min-w-0 w-full px-1.5 py-2.5 text-[11px] text-center focus:outline-none focus:bg-blue-50"
+      />
+    </div>
+  );
+}
+
+export function SeatingChart({ className }: { className: string; total: number }) {
   const { getClassData, updateClassData } = useGvcn();
   const data = getClassData(className);
-  const [editingDesk, setEditingDesk] = useState<string | null>(null);
-  const [draft, setDraft] = useState('');
 
-  const deskCount = Math.max(1, Math.ceil(total / 2)); // 2 học sinh / bàn thường
-  const perColumn = Math.ceil(deskCount / 4);
-  const columns = Array.from({ length: 4 }, (_, col) =>
-    Array.from({ length: perColumn }, (_, row) => col * perColumn + row + 1).filter((n) => n <= deskCount)
-  );
-
-  function openDesk(deskId: string) {
-    setEditingDesk(deskId);
-    setDraft(data.seats[deskId] ?? '');
-  }
-
-  function saveDesk() {
-    if (!editingDesk) return;
-    updateClassData(className, { seats: { ...data.seats, [editingDesk]: draft.trim() } });
-    setEditingDesk(null);
-  }
-
-  function saveSpecialSide(deskId: string, side: 'trai' | 'phai', value: string) {
+  function setSeat(deskId: string, side: 'trai' | 'phai', value: string) {
     updateClassData(className, { seats: { ...data.seats, [`${deskId}-${side}`]: value } });
   }
 
+  const columns = Array.from({ length: COLUMN_COUNT }, (_, col) =>
+    Array.from({ length: PER_COLUMN }, (_, row) => col * PER_COLUMN + row + 1)
+  );
+
   return (
     <div>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-2">
-        {columns.map((col, ci) => (
-          <div key={ci} className={`space-y-2 ${ci === 2 ? 'md:border-l md:border-dashed md:border-black/15 md:pl-6' : ''}`}>
-            {col.map((n) => {
-              const id = String(n);
-              const name = data.seats[id];
-              return editingDesk === id ? (
-                <input
-                  key={id}
-                  value={draft}
-                  onChange={(e) => setDraft(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && saveDesk()}
-                  onBlur={saveDesk}
-                  autoFocus
-                  placeholder={`Tên HS bàn ${n}`}
-                  className="w-full rounded-lg border-2 border-blue-500 px-3 py-2.5 text-xs font-semibold text-center focus:outline-none"
+      {/* Kéo ngang trên điện thoại thay vì bị dồn xuống 2 dãy */}
+      <div className="overflow-x-auto pb-2 -mx-1 px-1">
+        <div className="flex gap-6 min-w-[760px]">
+          {columns.map((col, ci) => (
+            <div key={ci} className={`flex-1 space-y-2 ${ci === 2 ? 'border-l border-dashed border-black/15 pl-6' : ''}`}>
+              {col.map((n) => (
+                <DeskCell
+                  key={n}
+                  n={n}
+                  left={data.seats[`${n}-trai`] ?? ''}
+                  right={data.seats[`${n}-phai`] ?? ''}
+                  onChange={(side, value) => setSeat(String(n), side, value)}
                 />
-              ) : (
-                <button
-                  key={id}
-                  onClick={() => openDesk(id)}
-                  className="w-full rounded-lg bg-blue-600 hover:bg-blue-700 text-white px-3 py-2.5 text-xs font-semibold text-center transition-colors"
-                >
-                  <span className="block opacity-80">BÀN {n}</span>
-                  {name && <span className="block mt-0.5 normal-case font-medium truncate">{name}</span>}
-                </button>
-              );
-            })}
-          </div>
-        ))}
-      </div>
-
-      {/* 2 bàn đặc biệt góc phải — mỗi bàn chia 3 cột: tên | nhãn BÀN | tên */}
-      <div className="mt-4 flex justify-end">
-        <div className="grid grid-cols-2 gap-2 w-full md:w-1/2">
-          {['DB1', 'DB2'].map((id, i) => (
-            <div key={id} className="grid grid-cols-3 rounded-lg overflow-hidden border border-blue-200">
-              <input
-                value={data.seats[`${id}-trai`] ?? ''}
-                onChange={(e) => saveSpecialSide(id, 'trai', e.target.value)}
-                placeholder="Tên HS"
-                className="min-w-0 px-1.5 py-2.5 text-[11px] text-center border-r border-blue-200 focus:outline-none focus:bg-blue-50"
-              />
-              <div className="bg-blue-600 text-white grid place-items-center text-[10px] font-bold px-0.5 text-center leading-tight">
-                BÀN {i + 25}
-              </div>
-              <input
-                value={data.seats[`${id}-phai`] ?? ''}
-                onChange={(e) => saveSpecialSide(id, 'phai', e.target.value)}
-                placeholder="Tên HS"
-                className="min-w-0 px-1.5 py-2.5 text-[11px] text-center border-l border-blue-200 focus:outline-none focus:bg-blue-50"
-              />
+              ))}
             </div>
           ))}
         </div>
+
+        {/* Bàn giáo viên — góc dưới cùng bên phải */}
+        <div className="min-w-[760px] flex justify-end mt-4">
+          <div className="w-full max-w-[calc(25%-1.125rem)] rounded-lg overflow-hidden border border-gold-400">
+            <div className="bg-gold-500 text-hoa-950 text-center text-[11px] font-bold py-1.5">BÀN GIÁO VIÊN</div>
+            <input
+              value={data.seats['gv-note'] ?? ''}
+              onChange={(e) => updateClassData(className, { seats: { ...data.seats, 'gv-note': e.target.value } })}
+              placeholder="Ghi chú (không bắt buộc)"
+              className="w-full px-2 py-2 text-[11px] text-center focus:outline-none focus:bg-amber-50"
+            />
+          </div>
+        </div>
       </div>
 
-      <p className="text-[11px] text-ink/40 mt-4">
-        Bấm vào 1 bàn thường để gõ tên học sinh ngồi ở đó (mỗi bàn 2 học sinh — gõ cả 2 tên cách nhau dấu phẩy nếu
-        cần). 2 bàn đặc biệt góc phải gõ trực tiếp tên vào 2 ô 2 bên.
+      <p className="text-[11px] text-ink/40 mt-3">
+        {DESK_COUNT} bàn, mỗi bàn 2 học sinh — gõ trực tiếp tên vào 2 ô 2 bên mỗi bàn. Trên điện thoại, vuốt/kéo
+        ngang để xem hết các dãy bàn.
       </p>
     </div>
   );
