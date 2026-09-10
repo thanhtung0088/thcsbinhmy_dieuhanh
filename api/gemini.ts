@@ -84,17 +84,37 @@ Quy tắc:
 - Nếu tài liệu không có công việc cụ thể nào, trả lời đúng 1 câu: "Không tìm thấy công việc cụ thể nào trong tài liệu này."`;
 
 const NOTEBOOK_SYSTEM_CONTEXT = `Bạn là AI Agent đọc tài liệu giúp cán bộ Trường THCS Bình Mỹ — giống cách
-NotebookLM hoạt động: đọc kỹ toàn bộ tài liệu nguồn được cung cấp, sau đó tóm tắt/trả lời chỉ dựa
+NotebookLM hoạt động: đọc kỹ toàn bộ tài liệu nguồn được cung cấp, sau đó phân tích/trả lời chỉ dựa
 trên nội dung các tài liệu đó.
 Quy tắc:
-- Trả lời bằng tiếng Việt, súc tích, có cấu trúc rõ ràng (dùng Markdown: ## tiêu đề mục, "- " gạch
-  đầu dòng, **in đậm** từ khoá quan trọng).
+- Trả lời bằng tiếng Việt, có cấu trúc rõ ràng (dùng Markdown: ## tiêu đề mục, "- " gạch đầu dòng,
+  **in đậm** từ khoá/số liệu/mốc thời gian quan trọng).
 - CHỈ dùng thông tin có trong tài liệu nguồn được cung cấp — nếu câu hỏi vượt ngoài nội dung tài
   liệu, nói rõ "Tài liệu không đề cập đến nội dung này" thay vì tự suy đoán hay bịa thông tin.
-- Khi tóm tắt tự động (không có câu hỏi cụ thể): nêu (1) tài liệu nói về gì, (2) các ý/số liệu/việc
-  chính, (3) điểm cần lưu ý nếu có (hạn chót, con số quan trọng, rủi ro...). Khoảng 150-250 từ.
-- Khi trả lời câu hỏi cụ thể: đi thẳng vào câu trả lời, có thể trích ngắn gọn ý từ tài liệu để dẫn
-  chứng, không cần nhắc lại toàn bộ quy tắc trên.`;
+- PHÂN TÍCH SÂU, ĐẦY ĐỦ Ý CHÍNH — không dừng lại ở 1-2 câu chung chung. Đọc hết toàn bộ tài liệu
+  (kể cả các phần ở giữa/cuối, không chỉ phần mở đầu) trước khi viết.
+- BỎ QUA phần "râu ria" không cốt lõi: quốc hiệu-tiêu ngữ, kính gửi/kính trình theo mẫu hành chính,
+  căn cứ pháp lý liệt kê dài dòng (chỉ nêu vắn tắt nếu thực sự cần), lời chào/lời cảm ơn cuối văn
+  bản, chữ ký/chức danh người ký.
+- TẬP TRUNG vào: nội dung/yêu cầu cụ thể, số liệu, mốc thời gian/hạn chót, đối tượng áp dụng, việc
+  cần làm và ai chịu trách nhiệm, điểm mới/điểm cần lưu ý so với quy định trước (nếu tài liệu có so
+  sánh).
+
+Khi TÓM TẮT TỰ ĐỘNG (không có câu hỏi cụ thể), trình bày theo cấu trúc:
+## Tài liệu này nói về gì
+1-2 câu nêu loại văn bản, số hiệu/ngày ban hành (nếu có), mục đích chính.
+## Nội dung cốt lõi
+Liệt kê ĐẦY ĐỦ các ý/quy định/yêu cầu chính bằng gạch đầu dòng — chi tiết, cụ thể, không rút gọn quá
+mức khiến mất thông tin quan trọng. Nếu tài liệu có nhiều phần/điều khoản, phân theo từng ý rõ ràng.
+## Mốc thời gian & số liệu cần nhớ
+Liệt kê hạn chót, ngày hiệu lực, số liệu, chỉ tiêu cụ thể nếu tài liệu có nêu — để trống mục này nếu
+tài liệu không có.
+## Việc cần làm / lưu ý
+Hành động cụ thể nhà trường/cán bộ cần thực hiện theo văn bản này, nếu có.
+Độ dài: viết đủ chi tiết cần thiết, không giới hạn cứng theo số từ, nhưng tránh lặp ý.
+
+Khi trả lời CÂU HỎI CỤ THỂ: đi thẳng vào câu trả lời, trích dẫn ngắn gọn ý từ tài liệu để dẫn chứng,
+trả lời đầy đủ chi tiết liên quan thay vì rút gọn quá mức.`;
 
 const GVCN_REMARK_CONTEXT = `Bạn là trợ lý giúp Giáo viên chủ nhiệm viết NHẬN XÉT THI ĐUA lớp dựa trên các
 ghi chú ngắn giáo viên cung cấp (tình hình học tập, nề nếp, hoạt động phong trào...).
@@ -297,7 +317,7 @@ Hãy đọc (các) tài liệu đính kèm bên dưới và tóm tắt công vi�
         }
       }
 
-      const text = await callGeminiParts(apiKey, NOTEBOOK_SYSTEM_CONTEXT, parts, isSummary ? 900 : 700);
+      const text = await callGeminiParts(apiKey, NOTEBOOK_SYSTEM_CONTEXT, parts, isSummary ? 4000 : 2000);
       return new Response(JSON.stringify({ text }), {
         status: 200,
         headers: { 'Content-Type': 'application/json' },

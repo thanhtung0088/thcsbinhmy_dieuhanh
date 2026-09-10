@@ -39,8 +39,6 @@ function RequireModule({ moduleKey, children }: { moduleKey: ModuleKey; children
 const LATER_PHASE_ROUTES: { path: string; label: string; phase: string; departmentKey?: string; moduleKey: ModuleKey }[] = [
   { path: '/cong-tac-dang', label: 'Công tác Đảng', phase: 'Phase 2', moduleKey: 'cong_tac_dang' },
   { path: '/cong-viec', label: 'Công việc / giao việc', phase: 'Phase 2', moduleKey: 'cong_viec' },
-  { path: '/co-so-vat-chat', label: 'Cơ sở vật chất & tài sản', phase: 'Phase 4', departmentKey: 'Cơ sở vật chất', moduleKey: 'co_so_vat_chat' },
-  { path: '/tai-chinh', label: 'Tài chính', phase: 'Phase 4', moduleKey: 'tai_chinh' },
   { path: '/van-ban', label: 'Văn bản điện tử', phase: 'Phase 4', moduleKey: 'van_ban' },
   { path: '/lich-cong-tac', label: 'Lịch công tác', phase: 'Phase 2', moduleKey: 'lich_cong_tac' },
   { path: '/kiem-tra', label: 'Kiểm tra nội bộ', phase: 'Phase 5', moduleKey: 'kiem_tra' },
@@ -75,8 +73,10 @@ export default function App() {
     <Routes>
       <Route element={<AppLayout />}>
         <Route path="/" element={<Dashboard />} />
-        <Route path="/diem-truong" element={<CampusOverview />} />
+        <Route path="/diem-truong" element={<Navigate to="/quan-tri?tab=diem-truong" replace />} />
         <Route path="/diem-truong/:campusId" element={<CampusDetail />} />
+        <Route path="/tai-chinh" element={<Navigate to="/quan-tri?tab=tai-chinh" replace />} />
+        <Route path="/co-so-vat-chat" element={<Navigate to="/quan-tri?tab=co-so-vat-chat" replace />} />
         <Route path="/gioi-thieu" element={<SystemMap />} />
         <Route path="/hoc-sinh" element={<RequireModule moduleKey="hoc_sinh"><HocSinhWorkspace /></RequireModule>} />
         <Route path="/gvcn" element={<RequireModule moduleKey="hoc_sinh"><GvcnList /></RequireModule>} />
@@ -84,7 +84,7 @@ export default function App() {
         <Route path="/kho-tai-nguyen" element={<DigitalLibrary />} />
         <Route path="/to-truong-cm" element={<RequireModule moduleKey="chuyen_mon"><ToTruongCM /></RequireModule>} />
         <Route path="/ke-hoach-truong" element={<RequireModule moduleKey="chuyen_mon"><KeHoachTruong /></RequireModule>} />
-        <Route path="/quan-tri" element={<RequireModule moduleKey="quan_tri"><QuanTri /></RequireModule>} />
+        <Route path="/quan-tri" element={<QuanTri />} />
         <Route path="/dich-vu-cong" element={<DichVuCong />} />
         <Route path="/phan-tich" element={<RequireModule moduleKey="phan_tich"><PhanTichDuBao /></RequireModule>} />
         <Route path="/ai-agent-kpi" element={<RequireModule moduleKey="ai_agent"><AiAgentKpi /></RequireModule>} />

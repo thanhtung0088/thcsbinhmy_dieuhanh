@@ -43,7 +43,6 @@ interface NavItem {
 const NAV: NavItem[] = [
   { to: '/', label: 'Tổng quan', icon: LayoutGrid },
   { to: '/gioi-thieu', label: 'Giới thiệu', icon: Map },
-  { to: '/diem-truong', label: '4 điểm trường', icon: Building2 },
   { to: '/quan-tri', label: 'Quản trị', icon: Landmark, moduleKey: 'quan_tri' },
   { to: '/cong-tac-dang', label: 'Công tác Đảng', icon: Flag, moduleKey: 'cong_tac_dang' },
   { to: '/to-truong-cm', label: 'Tổ trưởng chuyên môn', icon: ToTruongIcon, moduleKey: 'chuyen_mon' },
@@ -51,8 +50,6 @@ const NAV: NavItem[] = [
   { to: '/cong-viec', label: 'Công việc', icon: ClipboardList, moduleKey: 'cong_viec' },
   { to: '/ai-agent-kpi', label: 'AI Agent & KPI', icon: Bot, moduleKey: 'ai_agent' },
   { to: '/phan-tich-van-ban-ai', label: 'Phân tích văn bản AI', icon: FileSearch, moduleKey: 'ai_agent' },
-  { to: '/co-so-vat-chat', label: 'Cơ sở vật chất', icon: Wrench, moduleKey: 'co_so_vat_chat' },
-  { to: '/tai-chinh', label: 'Tài chính', icon: Wallet, moduleKey: 'tai_chinh' },
   { to: '/van-ban', label: 'Văn bản', icon: FileText, moduleKey: 'van_ban' },
   { to: '/lich-cong-tac', label: 'Lịch công tác', icon: CalendarDays, moduleKey: 'lich_cong_tac' },
   { to: '/kiem-tra', label: 'Kiểm tra', icon: ShieldCheck, moduleKey: 'kiem_tra' },
@@ -102,6 +99,13 @@ export function Sidebar({ mobileOpen, onClose }: SidebarProps) {
   function isLocked(item: NavItem) {
     if (!user) return !GUEST_ALLOWED_PATHS.has(item.to);
     if (user.role === 'super_admin') return false;
+    if (item.to === '/quan-tri') {
+      // Quản trị giờ gộp cả 4 điểm trường/Tài chính/CSVC — chỉ coi là khoá
+      // nếu KHÔNG có quyền với bất kỳ tab con nào bên trong.
+      const keys: ModuleKey[] = ['quan_tri', 'tai_chinh', 'co_so_vat_chat'];
+      const hasAny = keys.some((k) => can(user.role, k, 'view') || unlocked.has(k));
+      return !hasAny;
+    }
     if (!item.moduleKey) return false;
     return !can(user.role, item.moduleKey, 'view') && !unlocked.has(item.moduleKey);
   }

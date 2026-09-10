@@ -10,6 +10,9 @@ import {
   Loader2,
   Send,
   BookOpen,
+  ArrowRightCircle,
+  ArrowUpDown,
+  Search,
 } from 'lucide-react';
 
 interface Source {
@@ -17,9 +20,12 @@ interface Source {
   name: string;
   kind: 'image' | 'pdf' | 'docx' | 'unsupported';
   file: File;
+  addedAt: number;
   extractedText?: string; // docx đã trích chữ
   base64?: string; // ảnh/pdf gửi thẳng cho Gemini
   mimeType?: string;
+  summary?: string; // tóm tắt riêng của file này
+  summarizing?: boolean;
 }
 
 interface ChatMessage {
@@ -61,7 +67,7 @@ function SimpleMarkdown({ text }: { text: string }) {
         const l = line.trim();
         if (l.startsWith('## ')) {
           return (
-            <p key={i} className="text-xs font-bold text-hoa-900 mt-2.5 first:mt-0">
+            <p key={i} className="text-xs font-bold text-hoa-900 mt-3 first:mt-0">
               {l.slice(3)}
             </p>
           );
@@ -87,11 +93,15 @@ export function PhanTichVanBanAi() {
   const [sources, setSources] = useState<Source[]>([]);
   const [processing, setProcessing] = useState(false);
   const [summary, setSummary] = useState('');
+  const [summaryLoading, setSummaryLoading] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [question, setQuestion] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [search, setSearch] = useState('');
+  const [sortNewestFirst, setSortNewestFirst] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const summaryRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   async function handlePickFiles(list: FileList | null) {
     if (!list) return;
@@ -105,7 +115,7 @@ export function PhanTichVanBanAi() {
       const newSources: Source[] = [];
       for (const file of picked) {
         const kind = classifyFile(file);
-        const src: Source = { id: Math.random().toString(36).slice(2, 9), name: file.name, kind, file };
+        const src: Source = { id: Math.random().toString(36).slice(2, 9), name: file.name, kind, file, addedAt: Date.now() };
         if (kind === 'docx') {
           const buf = await file.arrayBuffer();
           const result = await mammoth.extractRawText({ arrayBuffer: buf });
@@ -117,7 +127,6 @@ export function PhanTichVanBanAi() {
         newSources.push(src);
       }
       setSources((prev) => [...prev, ...newSources]);
-      // Nguồn thay đổi thì tóm tắt/cuộc hội thoại cũ không còn đúng nữa
       setSummary('');
       setMessages([]);
     } catch (e: any) {
@@ -133,23 +142,21 @@ export function PhanTichVanBanAi() {
     setMessages([]);
   }
 
-  function buildPayload() {
-    const texts = sources.filter((s) => s.extractedText).map((s) => s.extractedText!);
-    const files = sources
-      .filter((s) => s.base64 && s.mimeType)
-      .map((s) => ({ mimeType: s.mimeType!, data: s.base64! }));
+  function payloadOf(list: Source[]) {
+    const texts = list.filter((s) => s.extractedText).map((s) => s.extractedText!);
+    const files = list.filter((s) => s.base64 && s.mimeType).map((s) => ({ mimeType: s.mimeType!, data: s.base64! }));
     return { texts, files };
   }
 
   async function handleSummarize() {
-    if (sources.length === 0 || loading) return;
-    setLoading(true);
+    if (sources.length === 0 || summaryLoading) return;
+    setSummaryLoading(true);
     setError(null);
     try {
       const resp = await fetch('/api/gemini', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mode: 'notebook', isSummary: true, ...buildPayload() }),
+        body: JSON.stringify({ mode: 'notebook', isSummary: true, ...payloadOf(sources) }),
       });
       const data = await resp.json();
       if (!resp.ok) throw new Error(data?.error || 'Có lỗi xảy ra');
@@ -157,8 +164,38 @@ export function PhanTichVanBanAi() {
     } catch (e: any) {
       setError(e?.message ?? 'Không tóm tắt được. Thử lại sau.');
     } finally {
-      setLoading(false);
+      setSummaryLoading(false);
     }
+  }
+
+  // Bấm mũi tên ở 1 file: nếu file đó chưa có tóm tắt riêng thì gọi AI phân
+  // tích riêng file đó, rồi cuộn xuống đúng khối tóm tắt của file này.
+  async function handleJumpToFileSummary(id: string) {
+    const src = sources.find((s) => s.id === id);
+    if (!src) return;
+
+    if (!src.summary && !src.summarizing) {
+      setSources((prev) => prev.map((s) => (s.id === id ? { ...s, summarizing: true } : s)));
+      setError(null);
+      try {
+        const resp = await fetch('/api/gemini', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ mode: 'notebook', isSummary: true, ...payloadOf([src]) }),
+        });
+        const data = await resp.json();
+        if (!resp.ok) throw new Error(data?.error || 'Có lỗi xảy ra');
+        setSources((prev) => prev.map((s) => (s.id === id ? { ...s, summary: data.text || '', summarizing: false } : s)));
+      } catch (e: any) {
+        setError(e?.message ?? 'Không phân tích được tệp này. Thử lại sau.');
+        setSources((prev) => prev.map((s) => (s.id === id ? { ...s, summarizing: false } : s)));
+        return;
+      }
+    }
+
+    setTimeout(() => {
+      summaryRefs.current[id]?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 80);
   }
 
   async function handleAsk() {
@@ -172,7 +209,7 @@ export function PhanTichVanBanAi() {
       const resp = await fetch('/api/gemini', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mode: 'notebook', message: q, ...buildPayload() }),
+        body: JSON.stringify({ mode: 'notebook', message: q, ...payloadOf(sources) }),
       });
       const data = await resp.json();
       if (!resp.ok) throw new Error(data?.error || 'Có lỗi xảy ra');
@@ -184,18 +221,22 @@ export function PhanTichVanBanAi() {
     }
   }
 
+  const visibleSources = sources
+    .filter((s) => s.name.toLowerCase().includes(search.toLowerCase()))
+    .sort((a, b) => (sortNewestFirst ? b.addedAt - a.addedAt : a.addedAt - b.addedAt));
+
   return (
     <div className="space-y-5">
       <div>
         <p className="text-xs font-semibold tracking-wide text-hoa-800">PHÂN TÍCH VĂN BẢN AI</p>
         <h2 className="text-xl font-bold text-ink mt-0.5">Đọc tài liệu &amp; hỏi đáp bằng AI</h2>
         <p className="text-xs text-ink/50 mt-1 max-w-xl">
-          Giống NotebookLM: tải tối đa {MAX_SOURCES} tài liệu (Word, PDF, ảnh) làm "nguồn", AI sẽ chỉ đọc và trả lời
-          dựa trên đúng nội dung các tài liệu đó — không suy đoán ngoài tài liệu.
+          Giống NotebookLM: tải tối đa {MAX_SOURCES} tài liệu (Word, PDF, ảnh) làm "nguồn", AI phân tích sâu, chỉ
+          dựa trên đúng nội dung tài liệu — không suy đoán ngoài tài liệu.
         </p>
       </div>
 
-      <div className="grid md:grid-cols-[280px_1fr] gap-4">
+      <div className="grid md:grid-cols-[300px_1fr] gap-4">
         {/* Cột trái: danh sách nguồn */}
         <div className="rounded-xl border border-black/10 bg-white p-3 space-y-3 h-fit">
           <div className="flex items-center justify-between">
@@ -218,19 +259,52 @@ export function PhanTichVanBanAi() {
             />
           </div>
 
+          {sources.length > 0 && (
+            <div className="flex items-center gap-1.5">
+              <div className="flex-1 flex items-center gap-1.5 rounded-lg border border-black/10 px-2 py-1.5">
+                <Search size={12} className="text-ink/30 shrink-0" />
+                <input
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Tìm công văn theo tên..."
+                  className="flex-1 min-w-0 text-xs focus:outline-none"
+                />
+              </div>
+              <button
+                onClick={() => setSortNewestFirst((v) => !v)}
+                title={sortNewestFirst ? 'Đang xếp: Mới nhất trước' : 'Đang xếp: Cũ nhất trước'}
+                className="flex items-center gap-1 rounded-lg border border-black/10 px-2 py-1.5 text-[10px] text-ink/50 hover:border-hoa-700 shrink-0"
+              >
+                <ArrowUpDown size={12} />
+                {sortNewestFirst ? 'Mới→Cũ' : 'Cũ→Mới'}
+              </button>
+            </div>
+          )}
+
           {sources.length === 0 ? (
             <p className="text-xs text-ink/30 text-center py-6">Chưa có nguồn nào. Bấm "+" để tải tài liệu lên.</p>
+          ) : visibleSources.length === 0 ? (
+            <p className="text-xs text-ink/30 text-center py-6">Không tìm thấy tài liệu nào khớp.</p>
           ) : (
             <ul className="space-y-1.5">
-              {sources.map((s) => (
-                <li key={s.id} className="flex items-center justify-between gap-2 bg-paper rounded-lg px-2.5 py-2">
+              {visibleSources.map((s) => (
+                <li key={s.id} className="flex items-center justify-between gap-1.5 bg-paper rounded-lg px-2.5 py-2">
                   <span className="flex items-center gap-1.5 min-w-0 text-xs text-ink/70">
                     {s.kind === 'image' ? <ImageIcon size={13} className="shrink-0" /> : <FileText size={13} className="shrink-0" />}
                     <span className="truncate">{s.name}</span>
                   </span>
-                  <button onClick={() => removeSource(s.id)} className="text-ink/30 hover:text-red-600 shrink-0">
-                    <X size={13} />
-                  </button>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <button
+                      onClick={() => handleJumpToFileSummary(s.id)}
+                      title="Xem AI phân tích tệp này"
+                      className="text-hoa-700 hover:text-hoa-950"
+                    >
+                      {s.summarizing ? <Loader2 size={14} className="animate-spin" /> : <ArrowRightCircle size={14} />}
+                    </button>
+                    <button onClick={() => removeSource(s.id)} className="text-ink/30 hover:text-red-600">
+                      <X size={13} />
+                    </button>
+                  </div>
                 </li>
               ))}
             </ul>
@@ -238,23 +312,23 @@ export function PhanTichVanBanAi() {
 
           <button
             onClick={handleSummarize}
-            disabled={sources.length === 0 || loading}
+            disabled={sources.length === 0 || summaryLoading}
             className="w-full flex items-center justify-center gap-1.5 rounded-lg bg-hoa-950 text-white text-xs font-medium px-3 py-2 hover:bg-hoa-800 disabled:opacity-40"
           >
-            {loading ? <Loader2 size={13} className="animate-spin" /> : <Sparkles size={13} className="text-gold-400" />}
-            Tóm tắt tự động
+            {summaryLoading ? <Loader2 size={13} className="animate-spin" /> : <Sparkles size={13} className="text-gold-400" />}
+            Tóm tắt tất cả nguồn
           </button>
         </div>
 
-        {/* Cột phải: tóm tắt + hỏi đáp */}
+        {/* Cột phải: tóm tắt (tổng + từng file) + hỏi đáp */}
         <div className="rounded-xl border border-black/10 bg-white flex flex-col overflow-hidden min-h-[420px]">
-          <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          <div className="flex-1 overflow-y-auto p-4 space-y-4 max-h-[70vh]">
             {sources.length === 0 && (
               <div className="h-full flex flex-col items-center justify-center text-center py-16">
                 <BookOpen size={28} className="text-ink/20 mb-2" />
                 <p className="text-sm text-ink/40 max-w-xs">
-                  Tải tài liệu ở cột bên trái để bắt đầu — AI sẽ tóm tắt và trả lời câu hỏi dựa trên đúng nội dung
-                  tài liệu, không bịa thêm.
+                  Tải tài liệu ở cột bên trái để bắt đầu — AI sẽ phân tích sâu và trả lời câu hỏi dựa trên đúng nội
+                  dung tài liệu, không bịa thêm.
                 </p>
               </div>
             )}
@@ -262,11 +336,24 @@ export function PhanTichVanBanAi() {
             {summary && (
               <div className="rounded-lg border border-hoa-100 bg-hoa-50/40 p-3">
                 <p className="text-[11px] font-semibold text-hoa-800 mb-1.5 flex items-center gap-1">
-                  <FileSearch size={12} /> Tóm tắt tự động
+                  <FileSearch size={12} /> Tóm tắt tất cả nguồn
                 </p>
                 <SimpleMarkdown text={summary} />
               </div>
             )}
+
+            {sources.filter((s) => s.summary).map((s) => (
+              <div
+                key={s.id}
+                ref={(el) => (summaryRefs.current[s.id] = el)}
+                className="rounded-lg border border-blue-100 bg-blue-50/30 p-3 scroll-mt-4"
+              >
+                <p className="text-[11px] font-semibold text-blue-700 mb-1.5 flex items-center gap-1">
+                  <FileText size={12} /> {s.name}
+                </p>
+                <SimpleMarkdown text={s.summary!} />
+              </div>
+            ))}
 
             {messages.map((m, i) => (
               <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
