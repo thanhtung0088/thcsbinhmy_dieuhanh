@@ -70,19 +70,31 @@ Quy tắc:
 - Luôn dùng đúng số điểm, tên, tỉ lệ đã cho trong dữ liệu — không bịa thêm số liệu.`;
 
 const EXTRACT_SYSTEM_CONTEXT = `Bạn là AI Agent giúp Ban Giám hiệu Trường THCS Bình Mỹ đọc văn bản/tài liệu
-(có thể là ảnh chụp, PDF, hoặc chữ) và lọc ra CÔNG VIỆC TRỌNG TÂM CỐT LÕI cần làm trong tuần, gán
-đúng vào TỪNG NGÀY cụ thể trong tuần nếu tài liệu có nêu.
+(có thể là ảnh chụp, PDF, hoặc chữ) và tóm tắt ra CÔNG VIỆC TRỌNG TÂM CỐT LÕI cần làm trong tuần.
 Quy tắc:
-- CHỈ trả về JSON hợp lệ, không thêm chữ nào khác, không dùng markdown, không bọc trong \`\`\`.
-- Định dạng: một mảng JSON các object {"task": "...", "day": "...", "time": "..."}.
-- "task": mô tả ngắn gọn, rõ hành động cụ thể (không chép nguyên văn cả câu dài trong văn bản).
-- "day": PHẢI chọn đúng 1 trong các nhãn ngày được liệt kê sẵn trong phần "Các ngày trong tuần" bên
-  dưới (chép đúng nguyên văn nhãn đó, vd "Thứ Ba (09/09)"); nếu tài liệu không nói rõ việc đó vào
-  ngày nào, để "day" là chuỗi rỗng "".
-- "time": giờ cụ thể nếu tài liệu có nêu (vd "14h00"), để chuỗi rỗng "" nếu không có.
-- Chỉ liệt kê việc thật sự CỐT LÕI, TRỌNG TÂM (thường 3-10 việc) — bỏ qua chi tiết phụ, câu mở đầu,
-  căn cứ pháp lý, lời chào.
-- Nếu tài liệu không có công việc cụ thể nào, trả về mảng rỗng [].`;
+- Trả lời bằng tiếng Việt, súc tích, dùng định dạng Markdown đơn giản (## cho tiêu đề ngày nếu tài
+  liệu có nêu rõ ngày cụ thể, "- " cho từng việc).
+- Nếu tài liệu có nêu rõ ngày/thứ cho từng việc, nhóm việc theo từng ngày (## Thứ Hai (dd/mm), ...).
+  Nếu không nêu rõ ngày, chỉ cần liệt kê gạch đầu dòng bình thường, không cần tiêu đề ngày.
+- Mỗi việc: 1 dòng ngắn gọn, nêu rõ hành động cụ thể + giờ/hạn nếu tài liệu có ghi (in đậm giờ bằng
+  **14h00** nếu có).
+- Chỉ nêu việc thật sự CỐT LÕI, TRỌNG TÂM (khoảng 3-10 việc) — bỏ qua chi tiết phụ, căn cứ pháp lý,
+  lời chào, thủ tục hành chính rườm rà.
+- Không thêm lời mở đầu kiểu "Dưới đây là..." hay lời kết — vào thẳng nội dung.
+- Nếu tài liệu không có công việc cụ thể nào, trả lời đúng 1 câu: "Không tìm thấy công việc cụ thể nào trong tài liệu này."`;
+
+const NOTEBOOK_SYSTEM_CONTEXT = `Bạn là AI Agent đọc tài liệu giúp cán bộ Trường THCS Bình Mỹ — giống cách
+NotebookLM hoạt động: đọc kỹ toàn bộ tài liệu nguồn được cung cấp, sau đó tóm tắt/trả lời chỉ dựa
+trên nội dung các tài liệu đó.
+Quy tắc:
+- Trả lời bằng tiếng Việt, súc tích, có cấu trúc rõ ràng (dùng Markdown: ## tiêu đề mục, "- " gạch
+  đầu dòng, **in đậm** từ khoá quan trọng).
+- CHỈ dùng thông tin có trong tài liệu nguồn được cung cấp — nếu câu hỏi vượt ngoài nội dung tài
+  liệu, nói rõ "Tài liệu không đề cập đến nội dung này" thay vì tự suy đoán hay bịa thông tin.
+- Khi tóm tắt tự động (không có câu hỏi cụ thể): nêu (1) tài liệu nói về gì, (2) các ý/số liệu/việc
+  chính, (3) điểm cần lưu ý nếu có (hạn chót, con số quan trọng, rủi ro...). Khoảng 150-250 từ.
+- Khi trả lời câu hỏi cụ thể: đi thẳng vào câu trả lời, có thể trích ngắn gọn ý từ tài liệu để dẫn
+  chứng, không cần nhắc lại toàn bộ quy tắc trên.`;
 
 const GVCN_REMARK_CONTEXT = `Bạn là trợ lý giúp Giáo viên chủ nhiệm viết NHẬN XÉT THI ĐUA lớp dựa trên các
 ghi chú ngắn giáo viên cung cấp (tình hình học tập, nề nếp, hoạt động phong trào...).
@@ -216,7 +228,9 @@ dựa trên dữ liệu trên: điểm cần chú ý, xu hướng, rủi ro/cả
 
     if (mode === 'extract-tasks') {
       // Đọc tài liệu (file Word→text đã trích ở client, hoặc ảnh/PDF gửi thẳng)
-      // để lọc công việc trọng tâm, gán đúng theo từng ngày trong tuần.
+      // để tóm tắt công việc trọng tâm. Trả về TEXT (markdown) thay vì JSON —
+      // giống cách NotebookLM hiển thị: luôn đọc được, không bao giờ lỗi
+      // "định dạng không đọc được" vì không cần parse cấu trúc gì cả.
       const { texts, files, weekDates } = body as {
         texts?: string[];
         files?: { mimeType: string; data: string }[];
@@ -228,10 +242,11 @@ dựa trên dữ liệu trên: điểm cần chú ý, xu hướng, rủi ro/cả
         return new Response(JSON.stringify({ error: 'Chưa có tài liệu nào để phân tích' }), { status: 400 });
       }
       const daysList = (weekDates || []).map((d) => `- ${d.label}`).join('\n');
-      const promptText = `Các ngày trong tuần đang xét (dùng đúng nguyên văn nhãn này cho trường "day"):
+      const promptText = `Các ngày trong tuần đang xét (nếu tài liệu nêu rõ ngày/thứ, hãy đối chiếu và
+dùng đúng nhãn ngày dưới đây làm tiêu đề mục):
 ${daysList || '(không có thông tin ngày cụ thể)'}
 
-Hãy đọc (các) tài liệu đính kèm bên dưới và lọc công việc trọng tâm theo đúng hướng dẫn.`;
+Hãy đọc (các) tài liệu đính kèm bên dưới và tóm tắt công việc trọng tâm theo đúng hướng dẫn.`;
 
       const parts: any[] = [{ text: promptText }];
       if (hasFiles) {
@@ -245,40 +260,45 @@ Hãy đọc (các) tài liệu đính kèm bên dưới và lọc công việc t
         }
       }
 
-      const raw = await callGeminiParts(apiKey, EXTRACT_SYSTEM_CONTEXT, parts, 2000);
+      const text = await callGeminiParts(apiKey, EXTRACT_SYSTEM_CONTEXT, parts, 1500);
+      return new Response(JSON.stringify({ text }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
 
-      // FIX: trước đây chỉ strip đúng y hệt ```json ... ``` ở đầu/cuối chuỗi.
-      // Gemini nhiều lúc chèn thêm câu mở đầu/kết thúc dù đã dặn không làm vậy
-      // (vd "Dưới đây là danh sách công việc:\n```json\n[...]\n```\nHy vọng
-      // giúp ích cho Thầy Cô!") khiến regex cũ không khớp -> JSON.parse lỗi ->
-      // báo "AI trả về định dạng không đọc được". Cũng tăng giới hạn độ dài
-      // phản hồi (900 → 2000) vì tài liệu dài/ảnh phức tạp có thể bị cắt giữa
-      // chừng gây JSON không hoàn chỉnh.
-      // Cách sửa: tìm đoạn mảng JSON [...] đầu tiên trong toàn bộ chuỗi trả
-      // về (dùng [\s\S] để match cả xuống dòng), bỏ qua mọi chữ thừa xung
-      // quanh. Chỉ khi không tìm thấy mảng nào mới fallback về cách strip cũ.
-      const match = raw.match(/\[[\s\S]*\]/);
-      const cleaned = match ? match[0] : raw.replace(/^```json\s*|```$/g, '').trim();
-
-      let tasks: { task: string; day: string; time: string }[] = [];
-      try {
-        const parsed = JSON.parse(cleaned);
-        if (Array.isArray(parsed)) {
-          tasks = parsed
-            .filter((t) => t && typeof t.task === 'string' && t.task.trim())
-            .map((t) => ({
-              task: String(t.task).trim(),
-              day: typeof t.day === 'string' ? t.day.trim() : '',
-              time: typeof t.time === 'string' ? t.time.trim() : '',
-            }));
-        }
-      } catch {
-        return new Response(
-          JSON.stringify({ error: 'AI trả lời chưa đúng định dạng (có thể do tài liệu quá dài/phức tạp) — thử lại hoặc chia nhỏ tài liệu.' }),
-          { status: 502 }
-        );
+    if (mode === 'notebook') {
+      // "Phân tích văn bản AI" — kiểu NotebookLM: đọc (các) tài liệu nguồn,
+      // rồi tóm tắt tự động hoặc trả lời câu hỏi chỉ dựa trên tài liệu đó.
+      const { texts, files, message, isSummary } = body as {
+        texts?: string[];
+        files?: { mimeType: string; data: string }[];
+        message?: string;
+        isSummary?: boolean;
+      };
+      const hasText = Array.isArray(texts) && texts.some((t) => t && t.trim());
+      const hasFiles = Array.isArray(files) && files.length > 0;
+      if (!hasText && !hasFiles) {
+        return new Response(JSON.stringify({ error: 'Chưa có tài liệu nguồn nào để phân tích' }), { status: 400 });
       }
-      return new Response(JSON.stringify({ tasks }), {
+      const instruction = isSummary
+        ? 'Hãy tóm tắt tự động toàn bộ tài liệu nguồn bên dưới theo đúng hướng dẫn.'
+        : `Câu hỏi của người dùng về (các) tài liệu nguồn bên dưới: ${message}`;
+
+      const parts: any[] = [{ text: instruction }];
+      if (hasFiles) {
+        for (const f of files!.slice(0, 5)) {
+          parts.push({ inline_data: { mime_type: f.mimeType, data: f.data } });
+        }
+      }
+      if (hasText) {
+        for (const t of texts!) {
+          if (t && t.trim()) parts.push({ text: t.slice(0, 20000) });
+        }
+      }
+
+      const text = await callGeminiParts(apiKey, NOTEBOOK_SYSTEM_CONTEXT, parts, isSummary ? 900 : 700);
+      return new Response(JSON.stringify({ text }), {
         status: 200,
         headers: { 'Content-Type': 'application/json' },
       });

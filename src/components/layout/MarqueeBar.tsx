@@ -1,7 +1,7 @@
 const MESSAGES = [
-  'TRẠM ĐIỀU HÀNH TRƯỜNG THCS BÌNH MỸ — 01 nhà trường · 03 điểm trường · 01 hệ thống dữ liệu',
-  'Hiệu trưởng: Trần Đỗ Phương Bình · PHT Điểm 1: Nguyễn Thị Mến · PHT Điểm 2: Nguyễn Thanh Nhàn',
-  'Phân công chuyên môn Học kỳ I năm học 2026-2027 áp dụng từ 07/09/2026',
+  'Chào mừng quý Thầy/Cô, quý Phụ huynh học sinh đến với TRẠM ĐIỀU HÀNH TRƯỜNG THCS BÌNH MỸ',
+  'Mọi thắc mắc, yêu cầu về tài khoản, mã truy cập vui lòng liên hệ Văn phòng nhà trường',
+  'Đăng nhập bằng đúng tài khoản cá nhân được cấp để đảm bảo an toàn dữ liệu',
   'Thiết kế & lập trình: Nguyễn Thanh Tùng',
 ];
 

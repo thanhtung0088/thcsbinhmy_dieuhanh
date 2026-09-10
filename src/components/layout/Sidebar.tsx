@@ -23,6 +23,7 @@ import {
   GraduationCap as ToTruongIcon,
   BookOpenCheck,
   UsersRound,
+  FileSearch,
   Lock,
   X,
 } from 'lucide-react';
@@ -49,6 +50,7 @@ const NAV: NavItem[] = [
   { to: '/ke-hoach-truong', label: 'Kế hoạch trường', icon: BookOpenCheck, moduleKey: 'chuyen_mon' },
   { to: '/cong-viec', label: 'Công việc', icon: ClipboardList, moduleKey: 'cong_viec' },
   { to: '/ai-agent-kpi', label: 'AI Agent & KPI', icon: Bot, moduleKey: 'ai_agent' },
+  { to: '/phan-tich-van-ban-ai', label: 'Phân tích văn bản AI', icon: FileSearch, moduleKey: 'ai_agent' },
   { to: '/co-so-vat-chat', label: 'Cơ sở vật chất', icon: Wrench, moduleKey: 'co_so_vat_chat' },
   { to: '/tai-chinh', label: 'Tài chính', icon: Wallet, moduleKey: 'tai_chinh' },
   { to: '/van-ban', label: 'Văn bản', icon: FileText, moduleKey: 'van_ban' },

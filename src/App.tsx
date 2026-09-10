@@ -21,6 +21,7 @@ import { PhanTichDuBao } from './pages/PhanTichDuBao';
 import { AiAgentKpi } from './pages/AiAgentKpi';
 import { GvcnList } from './pages/GvcnList';
 import { GvcnWorkspace } from './pages/GvcnWorkspace';
+import { PhanTichVanBanAi } from './pages/PhanTichVanBanAi';
 
 import { ThongBaoCong } from './pages/ThongBaoCong';
 
@@ -87,6 +88,7 @@ export default function App() {
         <Route path="/dich-vu-cong" element={<DichVuCong />} />
         <Route path="/phan-tich" element={<RequireModule moduleKey="phan_tich"><PhanTichDuBao /></RequireModule>} />
         <Route path="/ai-agent-kpi" element={<RequireModule moduleKey="ai_agent"><AiAgentKpi /></RequireModule>} />
+        <Route path="/phan-tich-van-ban-ai" element={<RequireModule moduleKey="ai_agent"><PhanTichVanBanAi /></RequireModule>} />
         <Route path="/thong-bao" element={<ThongBaoCong />} />
         {/* Đường dẫn cũ trước khi gộp menu — chuyển hướng để không vỡ link đã lưu */}
         <Route path="/chuyen-mon" element={<Navigate to="/quan-tri" replace />} />

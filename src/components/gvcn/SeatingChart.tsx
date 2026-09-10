@@ -7,7 +7,7 @@ export function SeatingChart({ className, total }: { className: string; total: n
   const [editingDesk, setEditingDesk] = useState<string | null>(null);
   const [draft, setDraft] = useState('');
 
-  const deskCount = Math.max(1, Math.ceil(total / 2)); // 2 học sinh / bàn
+  const deskCount = Math.max(1, Math.ceil(total / 2)); // 2 học sinh / bàn thường
   const perColumn = Math.ceil(deskCount / 4);
   const columns = Array.from({ length: 4 }, (_, col) =>
     Array.from({ length: perColumn }, (_, row) => col * perColumn + row + 1).filter((n) => n <= deskCount)
@@ -22,6 +22,10 @@ export function SeatingChart({ className, total }: { className: string; total: n
     if (!editingDesk) return;
     updateClassData(className, { seats: { ...data.seats, [editingDesk]: draft.trim() } });
     setEditingDesk(null);
+  }
+
+  function saveSpecialSide(deskId: string, side: 'trai' | 'phai', value: string) {
+    updateClassData(className, { seats: { ...data.seats, [`${deskId}-${side}`]: value } });
   }
 
   return (
@@ -57,8 +61,35 @@ export function SeatingChart({ className, total }: { className: string; total: n
           </div>
         ))}
       </div>
+
+      {/* 2 bàn đặc biệt góc phải — mỗi bàn chia 3 cột: tên | nhãn BÀN | tên */}
+      <div className="mt-4 flex justify-end">
+        <div className="grid grid-cols-2 gap-2 w-full md:w-1/2">
+          {['DB1', 'DB2'].map((id, i) => (
+            <div key={id} className="grid grid-cols-3 rounded-lg overflow-hidden border border-blue-200">
+              <input
+                value={data.seats[`${id}-trai`] ?? ''}
+                onChange={(e) => saveSpecialSide(id, 'trai', e.target.value)}
+                placeholder="Tên HS"
+                className="min-w-0 px-1.5 py-2.5 text-[11px] text-center border-r border-blue-200 focus:outline-none focus:bg-blue-50"
+              />
+              <div className="bg-blue-600 text-white grid place-items-center text-[10px] font-bold px-0.5 text-center leading-tight">
+                BÀN {i + 25}
+              </div>
+              <input
+                value={data.seats[`${id}-phai`] ?? ''}
+                onChange={(e) => saveSpecialSide(id, 'phai', e.target.value)}
+                placeholder="Tên HS"
+                className="min-w-0 px-1.5 py-2.5 text-[11px] text-center border-l border-blue-200 focus:outline-none focus:bg-blue-50"
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+
       <p className="text-[11px] text-ink/40 mt-4">
-        Bấm vào 1 bàn để gõ tên học sinh ngồi ở đó (mỗi bàn 2 học sinh — gõ cả 2 tên cách nhau dấu phẩy nếu cần).
+        Bấm vào 1 bàn thường để gõ tên học sinh ngồi ở đó (mỗi bàn 2 học sinh — gõ cả 2 tên cách nhau dấu phẩy nếu
+        cần). 2 bàn đặc biệt góc phải gõ trực tiếp tên vào 2 ô 2 bên.
       </p>
     </div>
   );

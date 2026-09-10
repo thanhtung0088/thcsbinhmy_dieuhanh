@@ -1,0 +1,313 @@
+import { useRef, useState } from 'react';
+import mammoth from 'mammoth';
+import {
+  FileSearch,
+  Plus,
+  X,
+  FileText,
+  Image as ImageIcon,
+  Sparkles,
+  Loader2,
+  Send,
+  BookOpen,
+} from 'lucide-react';
+
+interface Source {
+  id: string;
+  name: string;
+  kind: 'image' | 'pdf' | 'docx' | 'unsupported';
+  file: File;
+  extractedText?: string; // docx đã trích chữ
+  base64?: string; // ảnh/pdf gửi thẳng cho Gemini
+  mimeType?: string;
+}
+
+interface ChatMessage {
+  role: 'user' | 'ai';
+  text: string;
+}
+
+const MAX_SOURCES = 5;
+
+function classifyFile(file: File): Source['kind'] {
+  if (file.type.startsWith('image/')) return 'image';
+  if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) return 'pdf';
+  if (file.name.toLowerCase().endsWith('.docx')) return 'docx';
+  return 'unsupported';
+}
+
+function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve((reader.result as string).split(',')[1] ?? '');
+    reader.onerror = () => reject(new Error('Không đọc được tệp'));
+    reader.readAsDataURL(file);
+  });
+}
+
+function SimpleMarkdown({ text }: { text: string }) {
+  const lines = text.split('\n').filter((l) => l.trim());
+  const renderBold = (s: string) =>
+    s.split(/(\*\*[^*]+\*\*)/g).map((part, i) =>
+      part.startsWith('**') && part.endsWith('**') ? (
+        <strong key={i} className="text-hoa-900">{part.slice(2, -2)}</strong>
+      ) : (
+        <span key={i}>{part}</span>
+      )
+    );
+  return (
+    <div className="space-y-1.5">
+      {lines.map((line, i) => {
+        const l = line.trim();
+        if (l.startsWith('## ')) {
+          return (
+            <p key={i} className="text-xs font-bold text-hoa-900 mt-2.5 first:mt-0">
+              {l.slice(3)}
+            </p>
+          );
+        }
+        if (l.startsWith('- ') || l.startsWith('* ')) {
+          return (
+            <p key={i} className="text-sm text-ink/80 pl-3.5 relative before:content-['•'] before:absolute before:left-0 before:text-hoa-400">
+              {renderBold(l.slice(2))}
+            </p>
+          );
+        }
+        return (
+          <p key={i} className="text-sm text-ink/80">
+            {renderBold(l)}
+          </p>
+        );
+      })}
+    </div>
+  );
+}
+
+export function PhanTichVanBanAi() {
+  const [sources, setSources] = useState<Source[]>([]);
+  const [processing, setProcessing] = useState(false);
+  const [summary, setSummary] = useState('');
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [question, setQuestion] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  async function handlePickFiles(list: FileList | null) {
+    if (!list) return;
+    const room = Math.max(0, MAX_SOURCES - sources.length);
+    const picked = Array.from(list).slice(0, room);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+
+    setProcessing(true);
+    setError(null);
+    try {
+      const newSources: Source[] = [];
+      for (const file of picked) {
+        const kind = classifyFile(file);
+        const src: Source = { id: Math.random().toString(36).slice(2, 9), name: file.name, kind, file };
+        if (kind === 'docx') {
+          const buf = await file.arrayBuffer();
+          const result = await mammoth.extractRawText({ arrayBuffer: buf });
+          src.extractedText = result.value;
+        } else if (kind === 'image' || kind === 'pdf') {
+          src.base64 = await fileToBase64(file);
+          src.mimeType = file.type || (kind === 'pdf' ? 'application/pdf' : 'image/jpeg');
+        }
+        newSources.push(src);
+      }
+      setSources((prev) => [...prev, ...newSources]);
+      // Nguồn thay đổi thì tóm tắt/cuộc hội thoại cũ không còn đúng nữa
+      setSummary('');
+      setMessages([]);
+    } catch (e: any) {
+      setError(e?.message ?? 'Không đọc được tệp vừa tải lên.');
+    } finally {
+      setProcessing(false);
+    }
+  }
+
+  function removeSource(id: string) {
+    setSources((prev) => prev.filter((s) => s.id !== id));
+    setSummary('');
+    setMessages([]);
+  }
+
+  function buildPayload() {
+    const texts = sources.filter((s) => s.extractedText).map((s) => s.extractedText!);
+    const files = sources
+      .filter((s) => s.base64 && s.mimeType)
+      .map((s) => ({ mimeType: s.mimeType!, data: s.base64! }));
+    return { texts, files };
+  }
+
+  async function handleSummarize() {
+    if (sources.length === 0 || loading) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const resp = await fetch('/api/gemini', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mode: 'notebook', isSummary: true, ...buildPayload() }),
+      });
+      const data = await resp.json();
+      if (!resp.ok) throw new Error(data?.error || 'Có lỗi xảy ra');
+      setSummary(data.text || '');
+    } catch (e: any) {
+      setError(e?.message ?? 'Không tóm tắt được. Thử lại sau.');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleAsk() {
+    const q = question.trim();
+    if (!q || sources.length === 0 || loading) return;
+    setMessages((prev) => [...prev, { role: 'user', text: q }]);
+    setQuestion('');
+    setLoading(true);
+    setError(null);
+    try {
+      const resp = await fetch('/api/gemini', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mode: 'notebook', message: q, ...buildPayload() }),
+      });
+      const data = await resp.json();
+      if (!resp.ok) throw new Error(data?.error || 'Có lỗi xảy ra');
+      setMessages((prev) => [...prev, { role: 'ai', text: data.text || '' }]);
+    } catch (e: any) {
+      setError(e?.message ?? 'Không trả lời được. Thử lại sau.');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="space-y-5">
+      <div>
+        <p className="text-xs font-semibold tracking-wide text-hoa-800">PHÂN TÍCH VĂN BẢN AI</p>
+        <h2 className="text-xl font-bold text-ink mt-0.5">Đọc tài liệu &amp; hỏi đáp bằng AI</h2>
+        <p className="text-xs text-ink/50 mt-1 max-w-xl">
+          Giống NotebookLM: tải tối đa {MAX_SOURCES} tài liệu (Word, PDF, ảnh) làm "nguồn", AI sẽ chỉ đọc và trả lời
+          dựa trên đúng nội dung các tài liệu đó — không suy đoán ngoài tài liệu.
+        </p>
+      </div>
+
+      <div className="grid md:grid-cols-[280px_1fr] gap-4">
+        {/* Cột trái: danh sách nguồn */}
+        <div className="rounded-xl border border-black/10 bg-white p-3 space-y-3 h-fit">
+          <div className="flex items-center justify-between">
+            <p className="text-xs font-semibold text-ink/60">Nguồn tài liệu ({sources.length}/{MAX_SOURCES})</p>
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={sources.length >= MAX_SOURCES || processing}
+              className="h-7 w-7 rounded-full bg-hoa-950 text-white grid place-items-center hover:bg-hoa-800 disabled:opacity-30"
+              aria-label="Thêm nguồn"
+            >
+              {processing ? <Loader2 size={13} className="animate-spin" /> : <Plus size={15} />}
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".docx,.pdf,image/*"
+              multiple
+              className="hidden"
+              onChange={(e) => handlePickFiles(e.target.files)}
+            />
+          </div>
+
+          {sources.length === 0 ? (
+            <p className="text-xs text-ink/30 text-center py-6">Chưa có nguồn nào. Bấm "+" để tải tài liệu lên.</p>
+          ) : (
+            <ul className="space-y-1.5">
+              {sources.map((s) => (
+                <li key={s.id} className="flex items-center justify-between gap-2 bg-paper rounded-lg px-2.5 py-2">
+                  <span className="flex items-center gap-1.5 min-w-0 text-xs text-ink/70">
+                    {s.kind === 'image' ? <ImageIcon size={13} className="shrink-0" /> : <FileText size={13} className="shrink-0" />}
+                    <span className="truncate">{s.name}</span>
+                  </span>
+                  <button onClick={() => removeSource(s.id)} className="text-ink/30 hover:text-red-600 shrink-0">
+                    <X size={13} />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          <button
+            onClick={handleSummarize}
+            disabled={sources.length === 0 || loading}
+            className="w-full flex items-center justify-center gap-1.5 rounded-lg bg-hoa-950 text-white text-xs font-medium px-3 py-2 hover:bg-hoa-800 disabled:opacity-40"
+          >
+            {loading ? <Loader2 size={13} className="animate-spin" /> : <Sparkles size={13} className="text-gold-400" />}
+            Tóm tắt tự động
+          </button>
+        </div>
+
+        {/* Cột phải: tóm tắt + hỏi đáp */}
+        <div className="rounded-xl border border-black/10 bg-white flex flex-col overflow-hidden min-h-[420px]">
+          <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            {sources.length === 0 && (
+              <div className="h-full flex flex-col items-center justify-center text-center py-16">
+                <BookOpen size={28} className="text-ink/20 mb-2" />
+                <p className="text-sm text-ink/40 max-w-xs">
+                  Tải tài liệu ở cột bên trái để bắt đầu — AI sẽ tóm tắt và trả lời câu hỏi dựa trên đúng nội dung
+                  tài liệu, không bịa thêm.
+                </p>
+              </div>
+            )}
+
+            {summary && (
+              <div className="rounded-lg border border-hoa-100 bg-hoa-50/40 p-3">
+                <p className="text-[11px] font-semibold text-hoa-800 mb-1.5 flex items-center gap-1">
+                  <FileSearch size={12} /> Tóm tắt tự động
+                </p>
+                <SimpleMarkdown text={summary} />
+              </div>
+            )}
+
+            {messages.map((m, i) => (
+              <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                <div
+                  className={`max-w-[85%] rounded-xl px-3 py-2 text-sm ${
+                    m.role === 'user' ? 'bg-blue-600 text-white' : 'bg-paper text-ink border border-black/5'
+                  }`}
+                >
+                  {m.role === 'ai' ? <SimpleMarkdown text={m.text} /> : m.text}
+                </div>
+              </div>
+            ))}
+
+            {loading && (
+              <div className="flex items-center gap-1.5 text-xs text-ink/40">
+                <Loader2 size={13} className="animate-spin" /> AI đang đọc tài liệu...
+              </div>
+            )}
+            {error && <p className="text-xs text-signal-overdue">{error}</p>}
+          </div>
+
+          <div className="p-2.5 border-t border-black/10 flex items-center gap-2 shrink-0 bg-white">
+            <input
+              value={question}
+              onChange={(e) => setQuestion(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleAsk()}
+              disabled={sources.length === 0}
+              placeholder={sources.length === 0 ? 'Tải tài liệu trước đã...' : 'Hỏi gì đó về tài liệu vừa tải...'}
+              className="flex-1 rounded-lg border border-black/10 px-3 py-2 text-sm focus-ring disabled:bg-paper disabled:cursor-not-allowed"
+            />
+            <button
+              onClick={handleAsk}
+              disabled={!question.trim() || sources.length === 0 || loading}
+              className="h-9 w-9 rounded-lg bg-blue-600 text-white grid place-items-center disabled:opacity-40"
+              aria-label="Gửi"
+            >
+              <Send size={15} />
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
