@@ -1,5 +1,6 @@
 import { useRef, useState, useEffect } from 'react';
 import { Sparkles, X, Send, Loader2 } from 'lucide-react';
+import { callGeminiApi } from '../../lib/geminiClient';
 
 interface ChatMessage {
   role: 'user' | 'ai';
@@ -34,13 +35,7 @@ export function AiAssistantWidget() {
     setLoading(true);
     setError(null);
     try {
-      const resp = await fetch('/api/gemini', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mode: 'chat', message: q }),
-      });
-      const data = await resp.json();
-      if (!resp.ok) throw new Error(data?.error || 'Có lỗi xảy ra');
+      const data = await callGeminiApi<{ text: string }>({ mode: 'chat', message: q });
       setMessages((prev) => [...prev, { role: 'ai', text: data.text || '(Không có phản hồi)' }]);
     } catch (e: any) {
       setError(e?.message ?? 'Không kết nối được trợ lý AI. Thử lại sau.');

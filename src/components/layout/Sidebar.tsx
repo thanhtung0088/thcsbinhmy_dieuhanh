@@ -41,26 +41,37 @@ interface NavItem {
 }
 
 const NAV: NavItem[] = [
+  // Tổng quan — ai cũng cần thấy đầu tiên
   { to: '/', label: 'Tổng quan', icon: LayoutGrid },
-  { to: '/gioi-thieu', label: 'Giới thiệu', icon: Map },
+
+  // Cấp BGH / chiến lược toàn trường
   { to: '/quan-tri', label: 'Quản trị', icon: Landmark, moduleKey: 'quan_tri' },
   { to: '/cong-tac-dang', label: 'Công tác Đảng', icon: Flag, moduleKey: 'cong_tac_dang' },
-  { to: '/to-truong-cm', label: 'Tổ trưởng chuyên môn', icon: ToTruongIcon, moduleKey: 'chuyen_mon' },
-  { to: '/ke-hoach-truong', label: 'Kế hoạch trường', icon: BookOpenCheck, moduleKey: 'chuyen_mon' },
-  { to: '/cong-viec', label: 'Công việc', icon: ClipboardList, moduleKey: 'cong_viec' },
-  { to: '/ai-agent-kpi', label: 'AI Agent & KPI', icon: Bot, moduleKey: 'ai_agent' },
-  { to: '/phan-tich-van-ban-ai', label: 'Phân tích văn bản AI', icon: FileSearch, moduleKey: 'ai_agent' },
-  { to: '/van-ban', label: 'Văn bản', icon: FileText, moduleKey: 'van_ban' },
-  { to: '/lich-cong-tac', label: 'Lịch công tác', icon: CalendarDays, moduleKey: 'lich_cong_tac' },
-  { to: '/kiem-tra', label: 'Kiểm tra', icon: ShieldCheck, moduleKey: 'kiem_tra' },
-  { to: '/thi-dua', label: 'Thi đua', icon: Trophy, moduleKey: 'thi_dua' },
   { to: '/phan-tich', label: 'Phân tích và dự báo', icon: LineChart, moduleKey: 'phan_tich' },
   { to: '/bao-cao', label: 'Báo cáo', icon: FileBarChart2, moduleKey: 'bao_cao' },
-  { to: '/thong-bao', label: 'Thông báo', icon: Bell },
-  { to: '/dich-vu-cong', label: 'Dịch vụ công', icon: Globe2 },
-  { to: '/hoc-sinh', label: 'Học sinh', icon: UserSquare2, moduleKey: 'hoc_sinh' },
+  { to: '/kiem-tra', label: 'Kiểm tra', icon: ShieldCheck, moduleKey: 'kiem_tra' },
+  { to: '/thi-dua', label: 'Thi đua', icon: Trophy, moduleKey: 'thi_dua' },
+
+  // Cấp tổ / chuyên môn
+  { to: '/ai-agent-kpi', label: 'AI Agent & KPI', icon: Bot, moduleKey: 'ai_agent' },
+  { to: '/to-truong-cm', label: 'Tổ trưởng chuyên môn', icon: ToTruongIcon, moduleKey: 'chuyen_mon' },
+  { to: '/ke-hoach-truong', label: 'Kế hoạch trường', icon: BookOpenCheck, moduleKey: 'chuyen_mon' },
   { to: '/gvcn', label: 'Giáo viên chủ nhiệm', icon: UsersRound, moduleKey: 'hoc_sinh' },
+  { to: '/hoc-sinh', label: 'Học sinh', icon: UserSquare2, moduleKey: 'hoc_sinh' },
+
+  // Vận hành hàng ngày — ai đi làm cũng dùng
+  { to: '/cong-viec', label: 'Công việc', icon: ClipboardList, moduleKey: 'cong_viec' },
+  { to: '/lich-cong-tac', label: 'Lịch công tác', icon: CalendarDays, moduleKey: 'lich_cong_tac' },
+  { to: '/van-ban', label: 'Văn bản', icon: FileText, moduleKey: 'van_ban' },
+  { to: '/phan-tich-van-ban-ai', label: 'Phân tích văn bản AI', icon: FileSearch, moduleKey: 'ai_agent' },
+  { to: '/thong-bao', label: 'Thông báo', icon: Bell },
+
+  // Công khai / tiện ích chung
+  { to: '/dich-vu-cong', label: 'Dịch vụ công', icon: Globe2 },
   { to: '/kho-tai-nguyen', label: 'Kho tài nguyên và tiện ích', icon: BookMarked },
+  { to: '/gioi-thieu', label: 'Giới thiệu', icon: Map },
+
+  // Hệ thống — luôn ở cuối
   { to: '/cai-dat', label: 'Cài đặt', icon: Settings, moduleKey: 'cai_dat' },
 ];
 

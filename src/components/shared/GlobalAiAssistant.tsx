@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Bot, X, Send, Loader2 } from 'lucide-react';
 import { useAiAssistant } from '../../context/AiAssistantContext';
 import { getPersona } from '../../data/aiPersonas';
+import { callGeminiApi } from '../../lib/geminiClient';
 
 interface ChatMessage {
   role: 'user' | 'ai';
@@ -49,13 +50,7 @@ export function GlobalAiAssistant() {
     setLoading(true);
     setError(null);
     try {
-      const resp = await fetch('/api/gemini', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mode: 'ops-chat', message: q, persona: persona ?? undefined }),
-      });
-      const data = await resp.json();
-      if (!resp.ok) throw new Error(data?.error || 'Có lỗi xảy ra');
+      const data = await callGeminiApi<{ text: string }>({ mode: 'ops-chat', message: q, persona: persona ?? undefined });
       setMessages((prev) => [...prev, { role: 'ai', text: data.text || '(Không có phản hồi)' }]);
     } catch (e: any) {
       setError(e?.message ?? 'Không kết nối được trợ lý AI. Thử lại sau.');

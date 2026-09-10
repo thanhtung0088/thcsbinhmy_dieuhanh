@@ -3,6 +3,7 @@ import { Bot, Plus, Sparkles, Loader2, Gauge, Users, AlertTriangle, TrendingUp }
 import { useKpi } from '../context/KpiContext';
 import { calcSubmission } from '../lib/kpiCalc';
 import { KpiSubmissionModal } from '../components/shared/KpiSubmissionModal';
+import { callGeminiApi } from '../lib/geminiClient';
 
 function StatCard({ icon: Icon, label, value, sub }: { icon: typeof Users; label: string; value: string | number; sub?: string }) {
   return (
@@ -52,13 +53,7 @@ export function AiAgentKpi() {
         overdueCount: calc.overdueCount,
         earlyRatioPct: Math.round(calc.earlyRatio * 100),
       }));
-      const resp = await fetch('/api/gemini', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mode: 'kpi-summary', submissions: payload }),
-      });
-      const data = await resp.json();
-      if (!resp.ok) throw new Error(data?.error || 'Có lỗi xảy ra');
+      const data = await callGeminiApi<{ text: string }>({ mode: 'kpi-summary', submissions: payload });
       setAiText(data.text || '(Không có phản hồi)');
     } catch (e: any) {
       setAiError(e?.message ?? 'Không tổng hợp được. Thử lại sau.');

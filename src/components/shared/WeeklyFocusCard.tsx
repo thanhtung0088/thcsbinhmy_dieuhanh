@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
 import mammoth from 'mammoth';
+import { callGeminiApi } from '../../lib/geminiClient';
 import { CalendarRange, Plus, Sparkles, Trash2, Loader2, X, FileText, Image as ImageIcon, ChevronDown, ChevronUp } from 'lucide-react';
 
 // Năm học 2026-2027 áp dụng phân công chuyên môn từ 07/09/2026 (Thứ Hai)
@@ -166,13 +167,7 @@ export function WeeklyFocusCard() {
         }
       }
 
-      const resp = await fetch('/api/gemini', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mode: 'extract-tasks', texts, files, weekDates: dates }),
-      });
-      const data = await resp.json();
-      if (!resp.ok) throw new Error(data?.error || 'Có lỗi xảy ra');
+      const data = await callGeminiApi<{ text: string }>({ mode: 'extract-tasks', texts, files, weekDates: dates });
       updateWeek({ aiSummary: data.text || '' });
       setPicked([]);
       setShowUpload(false);

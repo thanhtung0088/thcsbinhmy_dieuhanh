@@ -317,7 +317,7 @@ Hãy đọc (các) tài liệu đính kèm bên dưới và tóm tắt công vi�
         }
       }
 
-      const text = await callGeminiParts(apiKey, NOTEBOOK_SYSTEM_CONTEXT, parts, isSummary ? 4000 : 2000);
+      const text = await callGeminiParts(apiKey, NOTEBOOK_SYSTEM_CONTEXT, parts, isSummary ? 2200 : 1400);
       return new Response(JSON.stringify({ text }), {
         status: 200,
         headers: { 'Content-Type': 'application/json' },

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { X, Send, Paperclip, CheckCircle2, Sparkles, Loader2 } from 'lucide-react';
 import { useReports } from '../../context/ReportsContext';
+import { callGeminiApi } from '../../lib/geminiClient';
 
 interface ServiceRequestModalProps {
   groupLabel: string; // "PHỤ HUYNH - HỌC SINH"
@@ -23,19 +24,13 @@ export function ServiceRequestModal({ groupLabel, serviceLabel, onClose }: Servi
     setAiLoading(true);
     setAiError(null);
     try {
-      const resp = await fetch('/api/gemini', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          mode: 'draft',
-          serviceLabel,
-          groupLabel,
-          requesterName,
-          className,
-        }),
+      const data = await callGeminiApi<{ text: string }>({
+        mode: 'draft',
+        serviceLabel,
+        groupLabel,
+        requesterName,
+        className,
       });
-      const data = await resp.json();
-      if (!resp.ok) throw new Error(data?.error || 'Có lỗi xảy ra');
       setContent(data.text || '');
     } catch (e: any) {
       setAiError(e?.message ?? 'Không tạo được nội dung gợi ý. Bạn tự nhập giúp mình nhé.');

@@ -15,6 +15,8 @@ import {
   Search,
 } from 'lucide-react';
 
+import { callGeminiApi } from '../lib/geminiClient';
+
 interface Source {
   id: string;
   name: string;
@@ -153,13 +155,7 @@ export function PhanTichVanBanAi() {
     setSummaryLoading(true);
     setError(null);
     try {
-      const resp = await fetch('/api/gemini', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mode: 'notebook', isSummary: true, ...payloadOf(sources) }),
-      });
-      const data = await resp.json();
-      if (!resp.ok) throw new Error(data?.error || 'Có lỗi xảy ra');
+      const data = await callGeminiApi<{ text: string }>({ mode: 'notebook', isSummary: true, ...payloadOf(sources) });
       setSummary(data.text || '');
     } catch (e: any) {
       setError(e?.message ?? 'Không tóm tắt được. Thử lại sau.');
@@ -178,13 +174,7 @@ export function PhanTichVanBanAi() {
       setSources((prev) => prev.map((s) => (s.id === id ? { ...s, summarizing: true } : s)));
       setError(null);
       try {
-        const resp = await fetch('/api/gemini', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ mode: 'notebook', isSummary: true, ...payloadOf([src]) }),
-        });
-        const data = await resp.json();
-        if (!resp.ok) throw new Error(data?.error || 'Có lỗi xảy ra');
+        const data = await callGeminiApi<{ text: string }>({ mode: 'notebook', isSummary: true, ...payloadOf([src]) });
         setSources((prev) => prev.map((s) => (s.id === id ? { ...s, summary: data.text || '', summarizing: false } : s)));
       } catch (e: any) {
         setError(e?.message ?? 'Không phân tích được tệp này. Thử lại sau.');
@@ -206,13 +196,7 @@ export function PhanTichVanBanAi() {
     setLoading(true);
     setError(null);
     try {
-      const resp = await fetch('/api/gemini', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mode: 'notebook', message: q, ...payloadOf(sources) }),
-      });
-      const data = await resp.json();
-      if (!resp.ok) throw new Error(data?.error || 'Có lỗi xảy ra');
+      const data = await callGeminiApi<{ text: string }>({ mode: 'notebook', message: q, ...payloadOf(sources) });
       setMessages((prev) => [...prev, { role: 'ai', text: data.text || '' }]);
     } catch (e: any) {
       setError(e?.message ?? 'Không trả lời được. Thử lại sau.');

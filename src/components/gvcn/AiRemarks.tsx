@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Sparkles, Loader2 } from 'lucide-react';
 import { useGvcn } from '../../context/GvcnContext';
+import { callGeminiApi } from '../../lib/geminiClient';
 
 export function AiRemarks({ className }: { className: string }) {
   const { getClassData, updateClassData } = useGvcn();
@@ -14,13 +15,7 @@ export function AiRemarks({ className }: { className: string }) {
     setLoading(true);
     setError(null);
     try {
-      const resp = await fetch('/api/gemini', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mode: 'gvcn-remark', notes }),
-      });
-      const data2 = await resp.json();
-      if (!resp.ok) throw new Error(data2?.error || 'Có lỗi xảy ra');
+      const data2 = await callGeminiApi<{ text: string }>({ mode: 'gvcn-remark', notes });
       updateClassData(className, { aiRemark: data2.text || '' });
     } catch (e: any) {
       setError(e?.message ?? 'Không tạo được nhận xét. Thử lại sau.');
