@@ -22,6 +22,7 @@ import {
   BookMarked,
   GraduationCap as ToTruongIcon,
   BookOpenCheck,
+  UsersRound,
   Lock,
   X,
 } from 'lucide-react';
@@ -59,6 +60,7 @@ const NAV: NavItem[] = [
   { to: '/thong-bao', label: 'Thông báo', icon: Bell },
   { to: '/dich-vu-cong', label: 'Dịch vụ công', icon: Globe2 },
   { to: '/hoc-sinh', label: 'Học sinh', icon: UserSquare2, moduleKey: 'hoc_sinh' },
+  { to: '/gvcn', label: 'Giáo viên chủ nhiệm', icon: UsersRound, moduleKey: 'hoc_sinh' },
   { to: '/kho-tai-nguyen', label: 'Kho tài nguyên và tiện ích', icon: BookMarked },
   { to: '/cai-dat', label: 'Cài đặt', icon: Settings, moduleKey: 'cai_dat' },
 ];

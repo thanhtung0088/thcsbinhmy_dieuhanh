@@ -7,6 +7,7 @@ import { ReportsProvider } from './context/ReportsContext';
 import { AiAssistantProvider } from './context/AiAssistantContext';
 import { KpiProvider } from './context/KpiContext';
 import { UnlockProvider } from './context/UnlockContext';
+import { GvcnProvider } from './context/GvcnContext';
 import './index.css';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
@@ -15,11 +16,13 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
       <AuthProvider>
         <ReportsProvider>
           <KpiProvider>
-            <UnlockProvider>
-              <AiAssistantProvider>
-                <App />
-              </AiAssistantProvider>
-            </UnlockProvider>
+            <GvcnProvider>
+              <UnlockProvider>
+                <AiAssistantProvider>
+                  <App />
+                </AiAssistantProvider>
+              </UnlockProvider>
+            </GvcnProvider>
           </KpiProvider>
         </ReportsProvider>
       </AuthProvider>

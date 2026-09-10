@@ -227,4 +227,5 @@ export const DEMO_USERS: User[] = [
   { id: 'u10', name: 'Huỳnh Thị Thư Viện', role: 'thu_vien', campusId: 'chinh', avatarInitials: 'HV' },
   { id: 'u11', name: 'Trần Thị Y Tế', role: 'y_te', campusId: 'chinh', avatarInitials: 'TY' },
   { id: 'u12', name: 'Đỗ Văn Thiết Bị', role: 'thiet_bi', campusId: 'chinh', avatarInitials: 'DB' },
+  { id: 'u13', name: 'Lý Văn CNTT', role: 'cntt', campusId: 'all', avatarInitials: 'LC' },
 ];

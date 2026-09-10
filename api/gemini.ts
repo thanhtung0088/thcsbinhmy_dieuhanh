@@ -84,6 +84,13 @@ Quy tắc:
   căn cứ pháp lý, lời chào.
 - Nếu tài liệu không có công việc cụ thể nào, trả về mảng rỗng [].`;
 
+const GVCN_REMARK_CONTEXT = `Bạn là trợ lý giúp Giáo viên chủ nhiệm viết NHẬN XÉT THI ĐUA lớp dựa trên các
+ghi chú ngắn giáo viên cung cấp (tình hình học tập, nề nếp, hoạt động phong trào...).
+Quy tắc:
+- Trả lời bằng tiếng Việt, giọng sư phạm, khích lệ nhưng thẳng thắn, khoảng 100-180 từ.
+- Nêu rõ điểm tích cực trước, sau đó điểm cần khắc phục (nếu có), kết thúc bằng lời động viên/định hướng.
+- Chỉ dùng thông tin giáo viên cung cấp, không bịa thêm số liệu hay sự việc cụ thể không có trong ghi chú.`;
+
 interface GeminiPart {
   text: string;
 }
@@ -195,6 +202,18 @@ dựa trên dữ liệu trên: điểm cần chú ý, xu hướng, rủi ro/cả
       });
     }
 
+    if (mode === 'gvcn-remark') {
+      const { notes } = body;
+      if (!notes || typeof notes !== 'string' || !notes.trim()) {
+        return new Response(JSON.stringify({ error: 'Chưa có ghi chú nào để viết nhận xét' }), { status: 400 });
+      }
+      const text = await callGemini(apiKey, GVCN_REMARK_CONTEXT, notes.slice(0, 4000), 400);
+      return new Response(JSON.stringify({ text }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
     if (mode === 'extract-tasks') {
       // Đọc tài liệu (file Word→text đã trích ở client, hoặc ảnh/PDF gửi thẳng)
       // để lọc công việc trọng tâm, gán đúng theo từng ngày trong tuần.
@@ -226,13 +245,15 @@ Hãy đọc (các) tài liệu đính kèm bên dưới và lọc công việc t
         }
       }
 
-      const raw = await callGeminiParts(apiKey, EXTRACT_SYSTEM_CONTEXT, parts, 900);
+      const raw = await callGeminiParts(apiKey, EXTRACT_SYSTEM_CONTEXT, parts, 2000);
 
       // FIX: trước đây chỉ strip đúng y hệt ```json ... ``` ở đầu/cuối chuỗi.
       // Gemini nhiều lúc chèn thêm câu mở đầu/kết thúc dù đã dặn không làm vậy
       // (vd "Dưới đây là danh sách công việc:\n```json\n[...]\n```\nHy vọng
       // giúp ích cho Thầy Cô!") khiến regex cũ không khớp -> JSON.parse lỗi ->
-      // báo "AI trả về định dạng không đọc được".
+      // báo "AI trả về định dạng không đọc được". Cũng tăng giới hạn độ dài
+      // phản hồi (900 → 2000) vì tài liệu dài/ảnh phức tạp có thể bị cắt giữa
+      // chừng gây JSON không hoàn chỉnh.
       // Cách sửa: tìm đoạn mảng JSON [...] đầu tiên trong toàn bộ chuỗi trả
       // về (dùng [\s\S] để match cả xuống dòng), bỏ qua mọi chữ thừa xung
       // quanh. Chỉ khi không tìm thấy mảng nào mới fallback về cách strip cũ.
@@ -252,7 +273,10 @@ Hãy đọc (các) tài liệu đính kèm bên dưới và lọc công việc t
             }));
         }
       } catch {
-        return new Response(JSON.stringify({ error: 'AI trả về định dạng không đọc được, thử lại.' }), { status: 502 });
+        return new Response(
+          JSON.stringify({ error: 'AI trả lời chưa đúng định dạng (có thể do tài liệu quá dài/phức tạp) — thử lại hoặc chia nhỏ tài liệu.' }),
+          { status: 502 }
+        );
       }
       return new Response(JSON.stringify({ tasks }), {
         status: 200,

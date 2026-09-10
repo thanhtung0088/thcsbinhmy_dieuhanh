@@ -70,6 +70,7 @@ export type RoleId =
   | 'to_truong_cm'
   | 'to_truong_vp'
   | 'bi_thu_dang'
+  | 'cntt'
   | 'giao_vien'
   | 'nhan_vien'
   | 'ke_toan'

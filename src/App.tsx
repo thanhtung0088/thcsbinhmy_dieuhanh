@@ -19,6 +19,8 @@ import { QuanTri } from './pages/QuanTri';
 import { DichVuCong } from './pages/DichVuCong';
 import { PhanTichDuBao } from './pages/PhanTichDuBao';
 import { AiAgentKpi } from './pages/AiAgentKpi';
+import { GvcnList } from './pages/GvcnList';
+import { GvcnWorkspace } from './pages/GvcnWorkspace';
 
 import { ThongBaoCong } from './pages/ThongBaoCong';
 
@@ -76,6 +78,8 @@ export default function App() {
         <Route path="/diem-truong/:campusId" element={<CampusDetail />} />
         <Route path="/gioi-thieu" element={<SystemMap />} />
         <Route path="/hoc-sinh" element={<RequireModule moduleKey="hoc_sinh"><HocSinhWorkspace /></RequireModule>} />
+        <Route path="/gvcn" element={<RequireModule moduleKey="hoc_sinh"><GvcnList /></RequireModule>} />
+        <Route path="/gvcn/:className" element={<RequireModule moduleKey="hoc_sinh"><GvcnWorkspace /></RequireModule>} />
         <Route path="/kho-tai-nguyen" element={<DigitalLibrary />} />
         <Route path="/to-truong-cm" element={<RequireModule moduleKey="chuyen_mon"><ToTruongCM /></RequireModule>} />
         <Route path="/ke-hoach-truong" element={<RequireModule moduleKey="chuyen_mon"><KeHoachTruong /></RequireModule>} />
