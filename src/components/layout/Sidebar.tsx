@@ -60,9 +60,7 @@ const NAV: NavItem[] = [
   { to: '/hoc-sinh', label: 'Học sinh', icon: UserSquare2, moduleKey: 'hoc_sinh' },
 
   // Vận hành hàng ngày — ai đi làm cũng dùng
-  { to: '/cong-viec', label: 'Công việc', icon: ClipboardList, moduleKey: 'cong_viec' },
   { to: '/lich-cong-tac', label: 'Lịch công tác', icon: CalendarDays, moduleKey: 'lich_cong_tac' },
-  { to: '/van-ban', label: 'Văn bản', icon: FileText, moduleKey: 'van_ban' },
   { to: '/phan-tich-van-ban-ai', label: 'Phân tích văn bản AI', icon: FileSearch, moduleKey: 'ai_agent' },
   { to: '/thong-bao', label: 'Thông báo', icon: Bell },
 

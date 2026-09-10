@@ -38,8 +38,6 @@ function RequireModule({ moduleKey, children }: { moduleKey: ModuleKey; children
 
 const LATER_PHASE_ROUTES: { path: string; label: string; phase: string; departmentKey?: string; moduleKey: ModuleKey }[] = [
   { path: '/cong-tac-dang', label: 'Công tác Đảng', phase: 'Phase 2', moduleKey: 'cong_tac_dang' },
-  { path: '/cong-viec', label: 'Công việc / giao việc', phase: 'Phase 2', moduleKey: 'cong_viec' },
-  { path: '/van-ban', label: 'Văn bản điện tử', phase: 'Phase 4', moduleKey: 'van_ban' },
   { path: '/lich-cong-tac', label: 'Lịch công tác', phase: 'Phase 2', moduleKey: 'lich_cong_tac' },
   { path: '/kiem-tra', label: 'Kiểm tra nội bộ', phase: 'Phase 5', moduleKey: 'kiem_tra' },
   { path: '/thi-dua', label: 'Thi đua – khen thưởng', phase: 'Phase 5', departmentKey: 'Thi đua', moduleKey: 'thi_dua' },
@@ -96,6 +94,8 @@ export default function App() {
         <Route path="/nhan-su-chuyen-mon" element={<Navigate to="/quan-tri" replace />} />
         <Route path="/ai-agent" element={<Navigate to="/ai-agent-kpi" replace />} />
         <Route path="/kpi" element={<Navigate to="/ai-agent-kpi" replace />} />
+        <Route path="/cong-viec" element={<Navigate to="/" replace />} />
+        <Route path="/van-ban" element={<Navigate to="/" replace />} />
         {LATER_PHASE_ROUTES.map((r) => (
           <Route
             key={r.path}
