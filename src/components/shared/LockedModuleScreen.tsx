@@ -8,6 +8,7 @@ const MODULE_LABEL: Partial<Record<ModuleKey, string>> = {
   cong_tac_dang: 'Công tác Đảng',
   chuyen_mon: 'Chuyên môn',
   nhan_su: 'Nhân sự',
+  hanh_chinh: 'Hành chính Văn phòng',
   hoc_sinh: 'Học sinh',
   cong_viec: 'Công việc',
   ai_agent: 'AI Agent & KPI',

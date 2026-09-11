@@ -22,6 +22,8 @@ import { AiAgentKpi } from './pages/AiAgentKpi';
 import { GvcnList } from './pages/GvcnList';
 import { GvcnWorkspace } from './pages/GvcnWorkspace';
 import { PhanTichVanBanAi } from './pages/PhanTichVanBanAi';
+import { HanhChinhVanPhong } from './pages/HanhChinhVanPhong';
+import { OfficeDeptWorkspace } from './pages/OfficeDeptWorkspace';
 
 import { ThongBaoCong } from './pages/ThongBaoCong';
 
@@ -41,7 +43,6 @@ const LATER_PHASE_ROUTES: { path: string; label: string; phase: string; departme
   { path: '/lich-cong-tac', label: 'Lịch công tác', phase: 'Phase 2', moduleKey: 'lich_cong_tac' },
   { path: '/kiem-tra', label: 'Kiểm tra nội bộ', phase: 'Phase 5', moduleKey: 'kiem_tra' },
   { path: '/thi-dua', label: 'Thi đua – khen thưởng', phase: 'Phase 5', departmentKey: 'Thi đua', moduleKey: 'thi_dua' },
-  { path: '/bao-cao', label: 'Báo cáo thông minh', phase: 'Phase 5', moduleKey: 'bao_cao' },
   { path: '/cai-dat', label: 'Cài đặt', phase: 'Phase 8', moduleKey: 'cai_dat' },
 ];
 
@@ -87,6 +88,9 @@ export default function App() {
         <Route path="/phan-tich" element={<RequireModule moduleKey="phan_tich"><PhanTichDuBao /></RequireModule>} />
         <Route path="/ai-agent-kpi" element={<RequireModule moduleKey="ai_agent"><AiAgentKpi /></RequireModule>} />
         <Route path="/phan-tich-van-ban-ai" element={<RequireModule moduleKey="ai_agent"><PhanTichVanBanAi /></RequireModule>} />
+        <Route path="/hanh-chinh-van-phong" element={<RequireModule moduleKey="hanh_chinh"><HanhChinhVanPhong /></RequireModule>} />
+        <Route path="/hanh-chinh-van-phong/:deptKey" element={<RequireModule moduleKey="hanh_chinh"><OfficeDeptWorkspace /></RequireModule>} />
+        <Route path="/bao-cao" element={<Navigate to="/" replace />} />
         <Route path="/thong-bao" element={<ThongBaoCong />} />
         {/* Đường dẫn cũ trước khi gộp menu — chuyển hướng để không vỡ link đã lưu */}
         <Route path="/chuyen-mon" element={<Navigate to="/quan-tri" replace />} />

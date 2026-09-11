@@ -9,6 +9,7 @@ export type ModuleKey =
   | 'cong_tac_dang'
   | 'chuyen_mon'
   | 'nhan_su'
+  | 'hanh_chinh'
   | 'hoc_sinh'
   | 'cong_viec'
   | 'ai_agent'
@@ -37,6 +38,7 @@ const FULL_ACCESS: Partial<Record<ModuleKey, Permission[]>> = {
   cong_tac_dang: ['view', 'create', 'edit', 'delete', 'export'],
   chuyen_mon: ['view', 'create', 'edit', 'delete', 'assign', 'export'],
   nhan_su: ['view', 'create', 'edit', 'delete', 'export'],
+  hanh_chinh: ['view', 'create', 'edit', 'delete'],
   hoc_sinh: ['view', 'create', 'edit', 'delete', 'export'],
   cong_viec: ['view', 'create', 'edit', 'delete', 'assign', 'approve'],
   ai_agent: ['view', 'create', 'edit', 'approve'],
@@ -69,6 +71,7 @@ const MATRIX: Partial<Record<RoleId, Partial<Record<ModuleKey, Permission[]>>>> 
     chuyen_mon: ['view', 'create', 'edit', 'report'],
     cong_viec: ['view', 'create', 'assign'],
     kpi: ['view'],
+    hanh_chinh: ['view'],
     thong_bao: ['view'],
   },
   // Giai đoạn thử nghiệm: Giáo viên được MỞ và DÙNG hầu hết mọi menu, trừ 3
@@ -81,6 +84,7 @@ const MATRIX: Partial<Record<RoleId, Partial<Record<ModuleKey, Permission[]>>>> 
     phan_tich: ['view'],
     chuyen_mon: ['view', 'create', 'edit'],
     nhan_su: ['view'],
+    hanh_chinh: ['view', 'create'],
     hoc_sinh: ['view', 'create', 'edit'],
     cong_viec: ['view', 'create', 'edit', 'assign'],
     ai_agent: ['view', 'create', 'edit'],
@@ -98,36 +102,43 @@ const MATRIX: Partial<Record<RoleId, Partial<Record<ModuleKey, Permission[]>>>> 
   ke_toan: {
     tong_quan: ['view'],
     tai_chinh: ['view', 'create', 'edit', 'export', 'report'],
+    hanh_chinh: ['view', 'create'],
     thong_bao: ['view'],
   },
   van_thu: {
     tong_quan: ['view'],
     quan_tri: ['view'],
     van_ban: ['view', 'create', 'edit'],
+    hanh_chinh: ['view', 'create'],
     thong_bao: ['view', 'create'],
   },
   thiet_bi: {
     tong_quan: ['view'],
     co_so_vat_chat: ['view', 'create', 'edit'],
+    hanh_chinh: ['view', 'create'],
     thong_bao: ['view'],
   },
   thu_vien: {
     tong_quan: ['view'],
     co_so_vat_chat: ['view'],
+    hanh_chinh: ['view', 'create'],
     thong_bao: ['view'],
   },
   y_te: {
     tong_quan: ['view'],
     hoc_sinh: ['view'],
+    hanh_chinh: ['view', 'create'],
     thong_bao: ['view'],
   },
   bao_ve: {
     tong_quan: ['view'],
     co_so_vat_chat: ['view'],
+    hanh_chinh: ['view', 'create'],
     thong_bao: ['view'],
   },
   nhan_vien: {
     tong_quan: ['view'],
+    hanh_chinh: ['view', 'create'],
     thong_bao: ['view'],
   },
 };

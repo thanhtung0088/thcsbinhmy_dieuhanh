@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Landmark, Users, Building2, Wallet, Wrench } from 'lucide-react';
 import { CAMPUSES, LEADERSHIP, OFFICE_STAFF, PARTY_CELLS, TOTAL_PARTY_MEMBERS } from '../data/mockData';
@@ -41,6 +41,15 @@ export function QuanTri() {
       ? TAB_PARAM[paramTab]
       : 'tong_quan';
   const [tab, setTab] = useState<Tab>(initialTab);
+
+  // FIX cùng lỗi như NhanSuChuyenMon: URL đổi (?q=... hoặc ?tab=...) nhưng
+  // trang không unmount lại nên tab cũ vẫn giữ nguyên — đồng bộ lại đây.
+  useEffect(() => {
+    const q = searchParams.get('q');
+    const t = searchParams.get('tab');
+    if (q) setTab('nhan_su_cm');
+    else if (t && TAB_PARAM[t]) setTab(TAB_PARAM[t]);
+  }, [searchParams]);
 
   const TABS: { key: Tab; label: string; icon: typeof Landmark }[] = [
     { key: 'tong_quan', label: 'Tổng quan quản trị', icon: Landmark },

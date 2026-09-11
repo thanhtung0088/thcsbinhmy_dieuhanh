@@ -11,6 +11,7 @@ const DEFAULT_CODES: Record<string, string> = {
   cong_tac_dang: 'dang2026',
   chuyen_mon: 'cm2026',
   nhan_su: 'ns2026',
+  hanh_chinh: 'hc2026',
   hoc_sinh: 'hs2026',
   cong_viec: 'cv2026',
   ai_agent: 'ai2026',

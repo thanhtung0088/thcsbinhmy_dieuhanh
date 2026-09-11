@@ -48,7 +48,6 @@ const NAV: NavItem[] = [
   { to: '/quan-tri', label: 'Quản trị', icon: Landmark, moduleKey: 'quan_tri' },
   { to: '/cong-tac-dang', label: 'Công tác Đảng', icon: Flag, moduleKey: 'cong_tac_dang' },
   { to: '/phan-tich', label: 'Phân tích và dự báo', icon: LineChart, moduleKey: 'phan_tich' },
-  { to: '/bao-cao', label: 'Báo cáo', icon: FileBarChart2, moduleKey: 'bao_cao' },
   { to: '/kiem-tra', label: 'Kiểm tra', icon: ShieldCheck, moduleKey: 'kiem_tra' },
   { to: '/thi-dua', label: 'Thi đua', icon: Trophy, moduleKey: 'thi_dua' },
 
@@ -61,6 +60,7 @@ const NAV: NavItem[] = [
 
   // Vận hành hàng ngày — ai đi làm cũng dùng
   { to: '/lich-cong-tac', label: 'Lịch công tác', icon: CalendarDays, moduleKey: 'lich_cong_tac' },
+  { to: '/hanh-chinh-van-phong', label: 'Hành chính Văn phòng', icon: Building2, moduleKey: 'hanh_chinh' },
   { to: '/phan-tich-van-ban-ai', label: 'Phân tích văn bản AI', icon: FileSearch, moduleKey: 'ai_agent' },
   { to: '/thong-bao', label: 'Thông báo', icon: Bell },
 

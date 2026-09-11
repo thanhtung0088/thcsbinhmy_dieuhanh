@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Search, Users, GraduationCap } from 'lucide-react';
 import { STAFF } from '../data/staff';
@@ -20,6 +20,15 @@ export function NhanSuChuyenMon() {
   const [campusFilter, setCampusFilter] = useState<CampusId | 'all'>('all');
   const [query, setQuery] = useState(searchParams.get('q') ?? '');
   const [pasted, setPasted] = useState<PastedTable | null>(null);
+
+  // FIX: useState(searchParams.get('q')) chỉ đọc URL lúc mount lần đầu — khi
+  // bấm tìm người khác từ ô tìm kiếm trên cùng, URL đổi (?q=...) nhưng trang
+  // này không unmount lại nên query cũ vẫn còn, khiến "chỉ tìm được 1 người".
+  // Thêm effect đồng bộ lại mỗi khi tham số URL thay đổi.
+  useEffect(() => {
+    const q = searchParams.get('q');
+    if (q !== null) setQuery(q);
+  }, [searchParams]);
 
   // GV/NV chỉ xem — không thấy nút dán Excel để nạp/ghi đè danh sách
   const canEdit = user ? !['giao_vien', 'nhan_vien', 'hoc_sinh', 'phu_huynh'].includes(user.role) : false;
