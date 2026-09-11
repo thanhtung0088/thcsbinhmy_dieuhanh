@@ -3,6 +3,7 @@ import { Bot, X, Send, Loader2 } from 'lucide-react';
 import { useAiAssistant } from '../../context/AiAssistantContext';
 import { getPersona } from '../../data/aiPersonas';
 import { callGeminiApi } from '../../lib/geminiClient';
+import { SimpleMarkdown } from './SimpleMarkdown';
 
 interface ChatMessage {
   role: 'user' | 'ai';
@@ -87,11 +88,11 @@ export function GlobalAiAssistant() {
           {messages.map((m, i) => (
             <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
               <div
-                className={`max-w-[85%] rounded-xl px-3 py-2 text-sm whitespace-pre-wrap ${
-                  m.role === 'user' ? 'bg-blue-600 text-white' : 'bg-white border border-black/10 text-ink'
+                className={`max-w-[85%] rounded-xl px-3 py-2 ${
+                  m.role === 'user' ? 'bg-blue-600 text-white text-sm whitespace-pre-wrap' : 'bg-white border border-black/10 text-ink'
                 }`}
               >
-                {m.text}
+                {m.role === 'ai' ? <SimpleMarkdown text={m.text} /> : m.text}
               </div>
             </div>
           ))}
