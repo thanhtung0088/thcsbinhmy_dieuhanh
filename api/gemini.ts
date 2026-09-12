@@ -228,7 +228,16 @@ async function callGeminiParts(apiKey: string, systemText: string, parts: any[],
       body: JSON.stringify({
         systemInstruction: { parts: [{ text: systemText }] },
         contents: [{ role: 'user', parts }],
-        generationConfig: { temperature: 0.4, maxOutputTokens },
+        generationConfig: {
+          temperature: 0.4,
+          maxOutputTokens,
+          // Gemini 2.5 mặc định âm thầm dùng 1 phần "hạn mức chữ" (maxOutputTokens)
+          // cho việc "suy nghĩ nội bộ" (thinking) TRƯỚC khi viết câu trả lời thật —
+          // nhiều lúc ăn hết phần lớn hạn mức khiến câu trả lời hiện ra bị cụt dù
+          // chưa viết xong. Việc soạn giáo án/văn bản không cần "suy luận nhiều bước"
+          // kiểu đó nên tắt hẳn để dồn toàn bộ hạn mức cho nội dung thật.
+          thinkingConfig: { thinkingBudget: 0 },
+        },
       }),
     }
   );
@@ -266,7 +275,16 @@ async function callGeminiStream(apiKey: string, systemText: string, parts: any[]
       body: JSON.stringify({
         systemInstruction: { parts: [{ text: systemText }] },
         contents: [{ role: 'user', parts }],
-        generationConfig: { temperature: 0.4, maxOutputTokens },
+        generationConfig: {
+          temperature: 0.4,
+          maxOutputTokens,
+          // Gemini 2.5 mặc định âm thầm dùng 1 phần "hạn mức chữ" (maxOutputTokens)
+          // cho việc "suy nghĩ nội bộ" (thinking) TRƯỚC khi viết câu trả lời thật —
+          // nhiều lúc ăn hết phần lớn hạn mức khiến câu trả lời hiện ra bị cụt dù
+          // chưa viết xong. Việc soạn giáo án/văn bản không cần "suy luận nhiều bước"
+          // kiểu đó nên tắt hẳn để dồn toàn bộ hạn mức cho nội dung thật.
+          thinkingConfig: { thinkingBudget: 0 },
+        },
       }),
     }
   );
@@ -347,13 +365,13 @@ Chỉ trả về đúng đoạn nội dung, không thêm tiêu đề, không th�
       // Trước đây giới hạn 500/2600 token khiến bài soạn dài (giáo án nhiều
       // tiết, SKKN...) bị cắt cụt ngay ở phần quan trọng nhất — giờ đã
       // streaming nên có thể cho hẳn nhiều hơn mà không sợ vượt quá 25 giây.
-      const maxTokens = persona === 'gvbm' ? 8000 : 2000;
+      const maxTokens = persona === 'gvbm' ? 16000 : 3000;
 
       // Dự phòng: nếu client báo streaming lần trước bị rỗng/lỗi, họ sẽ gọi
       // lại với stream:false để lấy nguyên câu trả lời 1 lần (chậm hơn nhưng
       // chắc chắn có nội dung, miễn là không vượt quá 25 giây).
       if (body.stream === false) {
-        const text = await callGeminiParts(apiKey, system, parts, Math.min(maxTokens, 3500));
+        const text = await callGeminiParts(apiKey, system, parts, Math.min(maxTokens, 6000));
         return new Response(JSON.stringify({ text }), {
           status: 200,
           headers: { 'Content-Type': 'application/json' },
