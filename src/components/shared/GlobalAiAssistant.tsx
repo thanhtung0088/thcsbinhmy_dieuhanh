@@ -1,8 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
-import { Bot, X, Send, Loader2, FileText, ChevronLeft, Download, FileType, Presentation } from 'lucide-react';
+import mammoth from 'mammoth';
+import {
+  Bot, X, Send, Loader2, FileText, ChevronLeft, Download, FileType, Presentation,
+  Plus, Image as ImageIcon,
+} from 'lucide-react';
 import { useAiAssistant } from '../../context/AiAssistantContext';
 import { getPersona } from '../../data/aiPersonas';
-import { callGeminiApi } from '../../lib/geminiClient';
 import { SimpleMarkdown } from './SimpleMarkdown';
 import { GVBM_TEMPLATES, type GvbmTemplate } from '../../data/gvbmTemplates';
 import { exportToDocx, exportToPdf, exportToPptx } from '../../lib/exportDoc';
@@ -13,12 +16,33 @@ interface ChatMessage {
   docTitle?: string; // nếu tin nhắn AI này là kết quả soạn theo mẫu -> cho phép xuất file
 }
 
+interface RefFile {
+  file: File;
+  kind: 'image' | 'pdf' | 'docx' | 'unsupported';
+}
+
 const DEFAULT_GREETING = 'Chào thầy/cô! Em là Trợ lý điều hành AI của Trạm Điều Hành. Thầy/cô cần hỏi gì?';
 const DEFAULT_SUGGESTIONS = [
   'Tuần này có việc gì cần ưu tiên?',
   'Tổng học sinh toàn trường bao nhiêu?',
   'Có nhiệm vụ nào đang quá hạn không?',
 ];
+
+function classifyFile(file: File): RefFile['kind'] {
+  if (file.type.startsWith('image/')) return 'image';
+  if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) return 'pdf';
+  if (file.name.toLowerCase().endsWith('.docx') || file.name.toLowerCase().endsWith('.pptx')) return 'docx';
+  return 'unsupported';
+}
+
+function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve((reader.result as string).split(',')[1] ?? '');
+    reader.onerror = () => reject(new Error('Không đọc được tệp'));
+    reader.readAsDataURL(file);
+  });
+}
 
 function ExportMenu({ text, title }: { text: string; title: string }) {
   const [open, setOpen] = useState(false);
@@ -48,25 +72,13 @@ function ExportMenu({ text, title }: { text: string; title: string }) {
         <>
           <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
           <div className="absolute left-0 mt-1 z-20 rounded-lg border border-black/10 bg-white shadow-xl overflow-hidden w-40">
-            <button
-              onClick={() => handleExport('docx')}
-              disabled={!!busy}
-              className="w-full flex items-center gap-2 px-3 py-2 text-xs hover:bg-paper disabled:opacity-40"
-            >
+            <button onClick={() => handleExport('docx')} disabled={!!busy} className="w-full flex items-center gap-2 px-3 py-2 text-xs hover:bg-paper disabled:opacity-40">
               {busy === 'docx' ? <Loader2 size={13} className="animate-spin" /> : <FileText size={13} className="text-blue-600" />} Word (.docx)
             </button>
-            <button
-              onClick={() => handleExport('pdf')}
-              disabled={!!busy}
-              className="w-full flex items-center gap-2 px-3 py-2 text-xs hover:bg-paper disabled:opacity-40 border-t border-black/5"
-            >
+            <button onClick={() => handleExport('pdf')} disabled={!!busy} className="w-full flex items-center gap-2 px-3 py-2 text-xs hover:bg-paper disabled:opacity-40 border-t border-black/5">
               {busy === 'pdf' ? <Loader2 size={13} className="animate-spin" /> : <FileType size={13} className="text-red-600" />} PDF (.pdf)
             </button>
-            <button
-              onClick={() => handleExport('pptx')}
-              disabled={!!busy}
-              className="w-full flex items-center gap-2 px-3 py-2 text-xs hover:bg-paper disabled:opacity-40 border-t border-black/5"
-            >
+            <button onClick={() => handleExport('pptx')} disabled={!!busy} className="w-full flex items-center gap-2 px-3 py-2 text-xs hover:bg-paper disabled:opacity-40 border-t border-black/5">
               {busy === 'pptx' ? <Loader2 size={13} className="animate-spin" /> : <Presentation size={13} className="text-amber-600" />} PowerPoint (.pptx)
             </button>
           </div>
@@ -76,12 +88,30 @@ function ExportMenu({ text, title }: { text: string; title: string }) {
   );
 }
 
-function GvbmForm({ template, onCancel, onSubmit }: { template: GvbmTemplate; onCancel: () => void; onSubmit: (values: Record<string, string>) => void }) {
+function GvbmForm({
+  template,
+  onCancel,
+  onSubmit,
+}: {
+  template: GvbmTemplate;
+  onCancel: () => void;
+  onSubmit: (values: Record<string, string>, refFiles: RefFile[]) => void;
+}) {
   const [values, setValues] = useState<Record<string, string>>(() => {
     const init: Record<string, string> = {};
     template.fields.forEach((f) => (init[f.key] = f.defaultValue ?? ''));
     return init;
   });
+  const [refFiles, setRefFiles] = useState<RefFile[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  function handlePickFiles(list: FileList | null) {
+    if (!list) return;
+    const room = Math.max(0, 3 - refFiles.length);
+    const next = Array.from(list).slice(0, room).map((file) => ({ file, kind: classifyFile(file) }));
+    setRefFiles((prev) => [...prev, ...next]);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  }
 
   return (
     <div className="rounded-xl border border-black/10 bg-white p-3 space-y-2.5">
@@ -101,9 +131,7 @@ function GvbmForm({ template, onCancel, onSubmit }: { template: GvbmTemplate; on
               >
                 <option value="">— Chọn —</option>
                 {f.options?.map((o) => (
-                  <option key={o} value={o}>
-                    {o}
-                  </option>
+                  <option key={o} value={o}>{o}</option>
                 ))}
               </select>
             ) : f.type === 'textarea' ? (
@@ -125,9 +153,47 @@ function GvbmForm({ template, onCancel, onSubmit }: { template: GvbmTemplate; on
             )}
           </div>
         ))}
+
+        <div>
+          <div className="flex items-center justify-between">
+            <label className="text-[11px] text-ink/50">Tài liệu mẫu tham khảo (không bắt buộc, tối đa 3 tệp)</label>
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={refFiles.length >= 3}
+              className="h-6 w-6 rounded-full bg-hoa-950 text-white grid place-items-center hover:bg-hoa-800 disabled:opacity-30 shrink-0"
+              aria-label="Thêm tệp mẫu"
+            >
+              <Plus size={13} />
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".docx,.pdf,.pptx,image/*"
+              multiple
+              className="hidden"
+              onChange={(e) => handlePickFiles(e.target.files)}
+            />
+          </div>
+          {refFiles.length > 0 && (
+            <ul className="mt-1.5 space-y-1">
+              {refFiles.map((rf, i) => (
+                <li key={i} className="flex items-center justify-between gap-2 text-[11px] text-ink/60 bg-paper rounded-md px-2 py-1">
+                  <span className="flex items-center gap-1.5 min-w-0 truncate">
+                    {rf.kind === 'image' ? <ImageIcon size={12} className="shrink-0" /> : <FileText size={12} className="shrink-0" />}
+                    <span className="truncate">{rf.file.name}</span>
+                    {rf.kind === 'unsupported' && <span className="text-signal-overdue shrink-0">(không hỗ trợ)</span>}
+                  </span>
+                  <button onClick={() => setRefFiles((prev) => prev.filter((_, idx) => idx !== i))} className="text-ink/30 hover:text-red-600 shrink-0">
+                    <X size={12} />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       </div>
       <button
-        onClick={() => onSubmit(values)}
+        onClick={() => onSubmit(values, refFiles)}
         className="w-full rounded-lg bg-hoa-950 text-white text-sm font-medium py-2 hover:bg-hoa-800"
       >
         AI soạn ngay
@@ -145,7 +211,6 @@ export function GlobalAiAssistant() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [gvbmTemplate, setGvbmTemplate] = useState<GvbmTemplate | null>(null);
-  const [lastDocTitle, setLastDocTitle] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -161,31 +226,110 @@ export function GlobalAiAssistant() {
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
-  }, [messages, open, gvbmTemplate]);
+  }, [messages, open, gvbmTemplate, loading]);
 
-  async function send(text: string, docTitle?: string) {
+  async function send(text: string, docTitle?: string, files?: { mimeType: string; data: string }[], texts?: string[]) {
     const q = text.trim();
     if (!q || loading) return;
-    setMessages((prev) => [...prev, { role: 'user', text: q }]);
+    setMessages((prev) => [...prev, { role: 'user', text: q }, { role: 'ai', text: '', docTitle }]);
     setInput('');
     setLoading(true);
     setError(null);
+
     try {
-      const data = await callGeminiApi<{ text: string }>({ mode: 'ops-chat', message: q, persona: persona ?? undefined });
-      setMessages((prev) => [...prev, { role: 'ai', text: data.text || '(Không có phản hồi)', docTitle }]);
+      const resp = await fetch('/api/gemini', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mode: 'ops-chat', message: q, persona: persona ?? undefined, files, texts }),
+      });
+
+      if (!resp.ok || !resp.body) {
+        const raw = await resp.text().catch(() => '');
+        let msg = 'Có lỗi xảy ra.';
+        try {
+          msg = JSON.parse(raw)?.error || msg;
+        } catch {
+          if (resp.status === 504 || resp.status === 502 || resp.status === 503) {
+            msg = 'AI xử lý quá lâu nên máy chủ đã ngắt. Thử lại hoặc rút gọn yêu cầu.';
+          }
+        }
+        throw new Error(msg);
+      }
+
+      // Đọc luồng SSE của Gemini, vừa nhận chữ tới đâu vừa cập nhật giao diện tới đó
+      const reader = resp.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+      let fullText = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const chunks = buffer.split('\n\n');
+        buffer = chunks.pop() ?? '';
+        for (const chunk of chunks) {
+          const line = chunk.trim();
+          if (!line.startsWith('data:')) continue;
+          const jsonStr = line.slice(5).trim();
+          if (!jsonStr) continue;
+          try {
+            const parsed = JSON.parse(jsonStr);
+            const delta = (parsed?.candidates?.[0]?.content?.parts ?? []).map((p: any) => p.text || '').join('');
+            if (delta) {
+              fullText += delta;
+              setMessages((prev) => {
+                const next = [...prev];
+                next[next.length - 1] = { ...next[next.length - 1], text: fullText };
+                return next;
+              });
+            }
+          } catch {
+            // bỏ qua chunk lỗi định dạng, không làm gãy cả luồng
+          }
+        }
+      }
+
+      if (!fullText) {
+        setMessages((prev) => {
+          const next = [...prev];
+          next[next.length - 1] = { ...next[next.length - 1], text: '(Không có phản hồi)' };
+          return next;
+        });
+      }
     } catch (e: any) {
       setError(e?.message ?? 'Không kết nối được trợ lý AI. Thử lại sau.');
+      setMessages((prev) => prev.slice(0, -1)); // bỏ bong bóng AI rỗng nếu lỗi
     } finally {
       setLoading(false);
     }
   }
 
-  function handleGvbmSubmit(values: Record<string, string>) {
+  async function handleGvbmSubmit(values: Record<string, string>, refFiles: RefFile[]) {
     if (!gvbmTemplate) return;
     const prompt = gvbmTemplate.buildPrompt(values);
     const docTitle = `${gvbmTemplate.label}${values.topic ? ` - ${values.topic}` : ''}`;
     setGvbmTemplate(null);
-    send(prompt, docTitle);
+
+    const files: { mimeType: string; data: string }[] = [];
+    const texts: string[] = [];
+    for (const rf of refFiles) {
+      if (rf.kind === 'unsupported') continue;
+      if (rf.kind === 'docx') {
+        try {
+          const buf = await rf.file.arrayBuffer();
+          const result = await mammoth.extractRawText({ arrayBuffer: buf });
+          texts.push(result.value);
+        } catch {
+          // .pptx không phải docx thật -> mammoth sẽ lỗi, bỏ qua tệp đó
+        }
+      } else {
+        const data = await fileToBase64(rf.file);
+        files.push({ mimeType: rf.file.type || 'application/pdf', data });
+      }
+    }
+
+    send(prompt, docTitle, files.length ? files : undefined, texts.length ? texts : undefined);
   }
 
   if (!open) return null;
@@ -222,23 +366,22 @@ export function GlobalAiAssistant() {
                 }`}
               >
                 {m.role === 'ai' ? (
-                  <>
-                    <SimpleMarkdown text={m.text} />
-                    {m.docTitle && <ExportMenu text={m.text} title={m.docTitle} />}
-                  </>
+                  m.text ? (
+                    <>
+                      <SimpleMarkdown text={m.text} />
+                      {m.docTitle && <ExportMenu text={m.text} title={m.docTitle} />}
+                    </>
+                  ) : (
+                    <span className="flex items-center gap-1.5 text-ink/40 text-sm">
+                      <Loader2 size={13} className="animate-spin" /> Đang soạn...
+                    </span>
+                  )
                 ) : (
                   m.text
                 )}
               </div>
             </div>
           ))}
-          {loading && (
-            <div className="flex justify-start">
-              <div className="rounded-xl px-3 py-2 text-sm bg-white border border-black/10 text-ink/50 flex items-center gap-1.5">
-                <Loader2 size={13} className="animate-spin" /> Đang trả lời...
-              </div>
-            </div>
-          )}
           {error && <p className="text-[11px] text-signal-overdue px-1">{error}</p>}
 
           {/* GVBM: hiện thẻ chọn mẫu soạn thay vì gợi ý câu hỏi thường */}

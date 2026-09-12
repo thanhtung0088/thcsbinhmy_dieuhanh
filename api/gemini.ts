@@ -61,22 +61,46 @@ cần, tác phong học sinh, biên bản/thông báo xử lý vi phạm nội q
 đi theo đúng khung mẫu tương ứng (theo chuẩn nhà trường đang áp dụng — Chương trình GDPT 2018, bộ
 sách Kết nối tri thức với cuộc sống). Tự nhận diện đúng loại tài liệu người dùng cần dựa trên yêu
 cầu của họ; nếu họ chưa nói rõ môn học/lớp/bài học, hỏi lại 1 câu ngắn gọn trước khi soạn dài.
+Nếu giáo viên có đính kèm tài liệu tham khảo/mẫu cũ, hãy đọc kỹ và bám theo đúng văn phong, cấu
+trúc, mức độ chi tiết của tài liệu đó khi soạn nội dung mới.
+
+QUY TẮC TRÌNH BÀY CHUNG — RẤT QUAN TRỌNG:
+- Viết như một giáo viên/nhà chuyên môn thực thụ đang soạn hồ sơ để nộp, KHÔNG để lộ dấu vết là do
+  AI soạn: không viết các câu kiểu "Dưới đây là...", "Đây là bản nháp AI hỗ trợ...", "Với tư cách
+  là AI...", không thêm lời mở đầu/lời kết ngoài lề, không tự nhận là AI ở bất kỳ đâu trong nội
+  dung tài liệu.
+- CHỈ dùng "## " cho tiêu đề mục lớn (số La Mã hoặc chữ) và "- " cho gạch đầu dòng khi thật sự cần
+  liệt kê — KHÔNG lạm dụng gạch đầu dòng cho những đoạn nên viết thành câu văn hoàn chỉnh. Tuyệt
+  đối không dùng ký hiệu "#" một mình, "*", ">", hay bất kỳ ký hiệu markdown/kỹ thuật nào khác
+  ngoài đúng 2 loại trên và "**chữ**" để in đậm.
+- Nếu bài có NHIỀU TIẾT (số tiết > 1), bắt buộc viết tách riêng và đầy đủ nội dung cho TỪNG TIẾT
+  một (Tiết 1, Tiết 2, Tiết 3...) trong phần Tiến trình dạy học — không được gộp chung/rút gọn
+  thành nội dung của 1 tiết rồi ghi chung chung là đủ cho cả bài. Mỗi tiết phải có đủ 4 hoạt động
+  tương ứng với lượng kiến thức thực sự dạy trong tiết đó.
 
 ═══ 1) KẾ HOẠCH BÀI DẠY (KHBD/giáo án) — theo CV 5512/BGDĐT-GDTrH, Phụ lục 4 ═══
 Cấu trúc bắt buộc:
 - Mục tiêu bài học: Phẩm chất / Năng lực chung / Năng lực đặc thù
 - Thiết bị dạy học và học liệu
-- Tiến trình dạy học gồm đúng 4 hoạt động: (1) Mở đầu, (2) Hình thành kiến thức, (3) Luyện tập,
-  (4) Vận dụng — mỗi hoạt động nêu rõ mục tiêu, nội dung, sản phẩm, tổ chức thực hiện.
+- Tiến trình dạy học gồm đúng 4 hoạt động cho MỖI TIẾT: (1) Mở đầu, (2) Hình thành kiến thức,
+  (3) Luyện tập, (4) Vận dụng — mỗi hoạt động nêu rõ mục tiêu, nội dung, sản phẩm, và PHẦN TỔ CHỨC
+  THỰC HIỆN phải trình bày dưới dạng BẢNG 2 CỘT "Hoạt động của GV" và "Hoạt động của HS", diễn
+  biến theo đúng trình tự thời gian (GV làm gì → HS làm gì tương ứng). Để tạo bảng này, dùng đúng
+  cú pháp mỗi dòng như sau (không thêm ký hiệu nào khác):
+  GV|<việc giáo viên làm ở bước này>
+  HS|<việc học sinh làm tương ứng>
+  (lặp lại nhiều cặp GV|/HS| theo đúng số bước cần thiết, đủ chi tiết như một giáo án thật)
 - Điều chỉnh – bổ sung (nếu có)
 Lồng ghép khi phù hợp: năng lực số, ứng dụng AI hỗ trợ dạy học, giáo dục quốc phòng-an ninh, học
 tập và làm theo tư tưởng/đạo đức/phong cách Hồ Chí Minh. Viết bằng văn phong hành chính-sư phạm,
-đúng chuẩn để in nộp hồ sơ chuyên môn.
+đúng chuẩn để in nộp hồ sơ chuyên môn — KHÔNG rút gọn, viết đủ chi tiết như giáo án thật giáo viên
+sẽ nộp, không phải bản tóm tắt sơ sài.
 
 ═══ 2) BÀI GIẢNG TRÌNH CHIẾU (dàn ý PPT) ═══
 Ít nhất 10 slide, bám sát KHBD, mỗi slide gồm: tiêu đề, nội dung ngắn gọn (gạch đầu dòng), gợi ý
 hình ảnh/sơ đồ minh hoạ. Cấu trúc gợi ý: Slide 1 Tiêu đề → Slide 2 Mục tiêu → Slide 3-8 Nội dung
-trọng tâm → Slide 9 Hoạt động/câu hỏi tương tác → Slide 10 Tổng kết/liên hệ thực tiễn.
+trọng tâm → Slide 9 Hoạt động/câu hỏi tương tác → Slide 10 Tổng kết/liên hệ thực tiễn. Nếu bài có
+nhiều tiết, chia rõ slide theo từng tiết.
 
 ═══ 3) ĐỀ KIỂM TRA theo CV 7991 ═══
 Gồm: ma trận đề (nội dung × mức độ Nhận biết-Thông hiểu-Vận dụng), cấu trúc đề (trắc nghiệm nếu có
@@ -108,13 +132,10 @@ Danh mục tài liệu tham khảo → Phụ lục.
 Yêu cầu chất lượng: văn phong hành chính-khoa học, không sao chép, lập luận chặt chẽ, giải pháp
 khả thi với trường THCS công lập, có minh chứng/bảng biểu. Nếu chưa có số liệu thực tế, tạo số
 liệu MINH HOẠ hợp lý và ghi chú rõ "Số liệu minh hoạ, cần thay bằng số liệu thực tế của đơn vị."
-LƯU Ý QUAN TRỌNG: một bộ SKKN đầy đủ dài 20-30 trang A4 — không thể viết hết trong 1 lần trả lời.
-Khi được yêu cầu soạn SKKN đầy đủ, hãy: (a) hỏi đủ thông tin đầu vào (tên đề tài, môn, khối lớp,
-đơn vị, năm học) nếu chưa có, (b) soạn trước đề cương chi tiết đầy đủ các đề mục, rồi đề nghị
-người dùng hỏi tiếp theo từng phần (vd "viết chi tiết Chương 3") để tránh câu trả lời bị cắt ngang.
-
-Khi ra đề/soạn tài liệu, luôn ghi rõ đây là bản nháp AI hỗ trợ, giáo viên cần kiểm tra/chỉnh sửa
-lại trước khi dùng chính thức.`,
+Một bộ SKKN đầy đủ dài 20-30 trang A4 — nếu được yêu cầu soạn đầy đủ, hãy: (a) hỏi đủ thông tin
+đầu vào (tên đề tài, môn, khối lớp, đơn vị, năm học) nếu chưa có, (b) soạn trước đề cương chi tiết
+đầy đủ các đề mục, rồi chủ động đề nghị người dùng hỏi tiếp theo từng phần (vd "viết chi tiết
+Chương 3") để có thể viết đủ chi tiết từng phần thay vì dồn hết vào 1 lần khiến nội dung bị loãng.`,
 };
 
 const KPI_SYSTEM_CONTEXT = `Bạn là AI Agent hỗ trợ Hiệu trưởng Trường THCS Bình Mỹ tổng hợp kết quả
@@ -221,6 +242,31 @@ async function callGemini(apiKey: string, systemText: string, userText: string, 
   return callGeminiParts(apiKey, systemText, [{ text: userText }], maxOutputTokens);
 }
 
+// Gọi Gemini theo kiểu STREAMING (vừa viết vừa gửi) thay vì đợi viết xong hết
+// mới trả lời 1 lần. Lý do: Edge Function chỉ được phép "im lặng" tối đa 25
+// giây trước khi BẮT ĐẦU gửi phản hồi — nếu Gemini viết bài dài (giáo án
+// nhiều tiết, SKKN...) lâu hơn 25 giây, kiểu gọi thường (không streaming) sẽ
+// bị Vercel ngắt giữa chừng (lỗi 504) hoặc bị cắt cụt nội dung. Với streaming,
+// ta bắt đầu gửi dữ liệu ngay khi có chữ đầu tiên nên không bao giờ vượt quá
+// 25 giây, và có thể tiếp tục viết dài tới 300 giây.
+async function callGeminiStream(apiKey: string, systemText: string, parts: any[], maxOutputTokens: number) {
+  return fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?alt=sse`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-goog-api-key': apiKey,
+      },
+      body: JSON.stringify({
+        systemInstruction: { parts: [{ text: systemText }] },
+        contents: [{ role: 'user', parts }],
+        generationConfig: { temperature: 0.4, maxOutputTokens },
+      }),
+    }
+  );
+}
+
 export default async function handler(req: Request) {
   if (req.method !== 'POST') {
     return new Response(JSON.stringify({ error: 'Chỉ chấp nhận POST' }), { status: 405 });
@@ -261,24 +307,56 @@ Chỉ trả về đúng đoạn nội dung, không thêm tiêu đề, không th�
 
     if (mode === 'ops-chat') {
       // Trợ lý điều hành chung (nút "Hỏi AI") — hoặc trợ lý theo vai trò
-      // (dải thẻ dưới thanh tìm kiếm) nếu có gửi kèm persona
-      const { message, context, persona } = body;
+      // (dải thẻ dưới thanh tìm kiếm) nếu có gửi kèm persona.
+      // Streaming: trả thẳng luồng SSE của Gemini cho trình duyệt xử lý,
+      // không đợi viết xong toàn bộ mới trả lời — tránh bị cắt cụt nội dung.
+      const { message, context, persona, files, texts } = body as {
+        message?: string;
+        context?: unknown;
+        persona?: string;
+        files?: { mimeType: string; data: string }[];
+        texts?: string[];
+      };
       if (!message || typeof message !== 'string') {
         return new Response(JSON.stringify({ error: 'Thiếu nội dung câu hỏi' }), { status: 400 });
       }
       const system = persona && PERSONA_CONTEXT[persona] ? `${OPS_SYSTEM_CONTEXT}\n\n${PERSONA_CONTEXT[persona]}` : OPS_SYSTEM_CONTEXT;
-      const prompt = context
+      const promptText = context
         ? `Dữ liệu hiện có của trường (JSON, dùng để trả lời nếu liên quan, không bịa thêm ngoài đây):\n${JSON.stringify(
             context
           )}\n\nCâu hỏi: ${message}`
         : message;
-      // Trước đây giới hạn 500 khiến câu trả lời bị cắt ngang, đọc không rõ
-      // ý — tăng lên hẳn. GVBM hay soạn giáo án/đề/SKKN nên cho hẳn nhiều hơn.
-      const maxTokens = persona === 'gvbm' ? 2600 : 1400;
-      const text = await callGemini(apiKey, system, prompt, maxTokens);
-      return new Response(JSON.stringify({ text }), {
+
+      const parts: any[] = [{ text: promptText }];
+      if (Array.isArray(files)) {
+        for (const f of files.slice(0, 3)) {
+          if (f?.mimeType && f?.data) parts.push({ inline_data: { mime_type: f.mimeType, data: f.data } });
+        }
+      }
+      if (Array.isArray(texts)) {
+        for (const t of texts) {
+          if (t && t.trim()) parts.push({ text: `[Tài liệu tham khảo GV đính kèm]\n${t.slice(0, 15000)}` });
+        }
+      }
+
+      // Trước đây giới hạn 500/2600 token khiến bài soạn dài (giáo án nhiều
+      // tiết, SKKN...) bị cắt cụt ngay ở phần quan trọng nhất — giờ đã
+      // streaming nên có thể cho hẳn nhiều hơn mà không sợ vượt quá 25 giây.
+      const maxTokens = persona === 'gvbm' ? 8000 : 2000;
+      const geminiResp = await callGeminiStream(apiKey, system, parts, maxTokens);
+
+      if (!geminiResp.ok || !geminiResp.body) {
+        const detail = await geminiResp.text().catch(() => '');
+        return new Response(JSON.stringify({ error: `Gemini API lỗi (${geminiResp.status}): ${detail.slice(0, 300)}` }), {
+          status: 502,
+        });
+      }
+
+      // Chuyển thẳng luồng SSE của Gemini ra cho trình duyệt — không cần
+      // biến đổi gì thêm, vì frontend đã biết cách đọc đúng định dạng này.
+      return new Response(geminiResp.body, {
         status: 200,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'text/event-stream; charset=utf-8', 'Cache-Control': 'no-cache' },
       });
     }
 

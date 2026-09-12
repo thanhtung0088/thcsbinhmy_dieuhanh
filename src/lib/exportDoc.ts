@@ -6,19 +6,42 @@ type Block =
   | { type: 'h2'; text: string }
   | { type: 'h3'; text: string }
   | { type: 'bullet'; text: string }
-  | { type: 'para'; text: string };
+  | { type: 'para'; text: string }
+  | { type: 'gvhs'; rows: { gv: string; hs: string }[] };
 
 function parseBlocks(text: string): Block[] {
-  return text
+  const lines = text
     .split('\n')
     .map((l) => l.trim())
-    .filter((l) => l && !l.startsWith('═══') && !l.startsWith('---'))
-    .map((l): Block => {
-      if (l.startsWith('### ')) return { type: 'h3', text: l.slice(4) };
-      if (l.startsWith('## ')) return { type: 'h2', text: l.slice(3) };
-      if (l.startsWith('- ') || l.startsWith('* ')) return { type: 'bullet', text: l.slice(2) };
-      return { type: 'para', text: l };
-    });
+    .filter((l) => l && !l.startsWith('═══') && !l.startsWith('---'));
+
+  const blocks: Block[] = [];
+  let gvhsRows: { gv: string; hs: string }[] = [];
+  let pendingGv: string | null = null;
+
+  function flushTable() {
+    if (gvhsRows.length > 0) blocks.push({ type: 'gvhs', rows: gvhsRows });
+    gvhsRows = [];
+  }
+
+  for (const l of lines) {
+    if (l.startsWith('GV|')) {
+      pendingGv = l.slice(3).trim();
+      continue;
+    }
+    if (l.startsWith('HS|')) {
+      gvhsRows.push({ gv: pendingGv ?? '', hs: l.slice(3).trim() });
+      pendingGv = null;
+      continue;
+    }
+    flushTable();
+    if (l.startsWith('### ')) blocks.push({ type: 'h3', text: l.slice(4) });
+    else if (l.startsWith('## ')) blocks.push({ type: 'h2', text: l.slice(3) });
+    else if (l.startsWith('- ') || l.startsWith('* ')) blocks.push({ type: 'bullet', text: l.slice(2) });
+    else blocks.push({ type: 'para', text: l });
+  }
+  flushTable();
+  return blocks;
 }
 
 // Bỏ dấu ** in đậm khi xuất ra text thuần (PDF/PPT không cần markdown)
@@ -38,9 +61,9 @@ function downloadBlob(blob: Blob, filename: string) {
 }
 
 export async function exportToDocx(text: string, title: string) {
-  const { Document, Packer, Paragraph, HeadingLevel, TextRun } = await import('docx');
+  const { Document, Packer, Paragraph, HeadingLevel, TextRun, Table, TableRow, TableCell, WidthType } = await import('docx');
   const blocks = parseBlocks(text);
-  const children: InstanceType<typeof Paragraph>[] = [
+  const children: (InstanceType<typeof Paragraph> | InstanceType<typeof Table>)[] = [
     new Paragraph({ text: title, heading: HeadingLevel.TITLE }),
     new Paragraph({ text: '' }),
   ];
@@ -51,6 +74,24 @@ export async function exportToDocx(text: string, title: string) {
       children.push(new Paragraph({ text: stripBold(b.text), heading: HeadingLevel.HEADING_2, spacing: { before: 180, after: 100 } }));
     } else if (b.type === 'bullet') {
       children.push(new Paragraph({ text: stripBold(b.text), bullet: { level: 0 } }));
+    } else if (b.type === 'gvhs') {
+      const headerRow = new TableRow({
+        children: [
+          new TableCell({ width: { size: 50, type: WidthType.PERCENTAGE }, children: [new Paragraph({ children: [new TextRun({ text: 'Hoạt động của GV', bold: true })] })] }),
+          new TableCell({ width: { size: 50, type: WidthType.PERCENTAGE }, children: [new Paragraph({ children: [new TextRun({ text: 'Hoạt động của HS', bold: true })] })] }),
+        ],
+      });
+      const rows = b.rows.map(
+        (r) =>
+          new TableRow({
+            children: [
+              new TableCell({ children: [new Paragraph(stripBold(r.gv))] }),
+              new TableCell({ children: [new Paragraph(stripBold(r.hs))] }),
+            ],
+          })
+      );
+      children.push(new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows: [headerRow, ...rows] }));
+      children.push(new Paragraph({ text: '', spacing: { after: 120 } }));
     } else {
       children.push(new Paragraph({ children: [new TextRun(stripBold(b.text))], spacing: { after: 100 } }));
     }
@@ -84,6 +125,33 @@ export async function exportToPdf(text: string, title: string) {
   y += titleLines.length * 20 + 16;
 
   for (const b of blocks) {
+    if (b.type === 'gvhs') {
+      const colW = (maxWidth - 10) / 2;
+      pdf.setFont('helvetica', 'bold');
+      pdf.setFontSize(10);
+      ensureSpace(16);
+      y += 6;
+      pdf.text('Hoạt động của GV', marginX, y);
+      pdf.text('Hoạt động của HS', marginX + colW + 10, y);
+      y += 4;
+      pdf.setDrawColor(200);
+      pdf.line(marginX, y, marginX + maxWidth, y);
+      y += 12;
+      pdf.setFont('helvetica', 'normal');
+      pdf.setFontSize(9.5);
+      for (const r of b.rows) {
+        const gvLines = pdf.splitTextToSize(stripBold(r.gv), colW - 6);
+        const hsLines = pdf.splitTextToSize(stripBold(r.hs), colW - 6);
+        const rowH = Math.max(gvLines.length, hsLines.length) * 13 + 6;
+        ensureSpace(rowH);
+        pdf.text(gvLines, marginX, y);
+        pdf.text(hsLines, marginX + colW + 10, y);
+        y += rowH;
+      }
+      y += 8;
+      continue;
+    }
+
     const clean = stripBold(b.text);
     if (b.type === 'h2') {
       pdf.setFont('helvetica', 'bold');
@@ -145,6 +213,13 @@ export async function exportToPptx(text: string, title: string) {
   }
 
   for (const b of blocks) {
+    if (b.type === 'gvhs') {
+      for (const r of b.rows) {
+        bodyLines.push(`GV: ${stripBold(r.gv)}`);
+        bodyLines.push(`HS: ${stripBold(r.hs)}`);
+      }
+      continue;
+    }
     const clean = stripBold(b.text);
     if (b.type === 'h2') {
       flush();
