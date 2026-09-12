@@ -236,6 +236,23 @@ export function GlobalAiAssistant() {
     setLoading(true);
     setError(null);
 
+    function updateLastAi(newText: string) {
+      setMessages((prev) => {
+        const next = [...prev];
+        next[next.length - 1] = { ...next[next.length - 1], text: newText };
+        return next;
+      });
+    }
+
+    function extractDelta(jsonStr: string): string {
+      try {
+        const parsed = JSON.parse(jsonStr);
+        return (parsed?.candidates?.[0]?.content?.parts ?? []).map((p: any) => p.text || '').join('');
+      } catch {
+        return '';
+      }
+    }
+
     try {
       const resp = await fetch('/api/gemini', {
         method: 'POST',
@@ -264,38 +281,45 @@ export function GlobalAiAssistant() {
 
       while (true) {
         const { done, value } = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value, { stream: true });
+        if (value) buffer += decoder.decode(value, { stream: true });
+        if (done) buffer += decoder.decode(); // xả nốt byte còn dở dang trong decoder
+
         const chunks = buffer.split('\n\n');
-        buffer = chunks.pop() ?? '';
+        // Khi luồng đã kết thúc (done), phần còn lại trong buffer cũng là 1
+        // chunk cần xử lý nốt — trước đây bị bỏ sót nên có lúc mất đúng đoạn
+        // chữ cuối cùng, khiến câu trả lời trông như "rỗng" khi bài ngắn.
+        buffer = done ? '' : (chunks.pop() ?? '');
+
         for (const chunk of chunks) {
           const line = chunk.trim();
           if (!line.startsWith('data:')) continue;
           const jsonStr = line.slice(5).trim();
           if (!jsonStr) continue;
-          try {
-            const parsed = JSON.parse(jsonStr);
-            const delta = (parsed?.candidates?.[0]?.content?.parts ?? []).map((p: any) => p.text || '').join('');
-            if (delta) {
-              fullText += delta;
-              setMessages((prev) => {
-                const next = [...prev];
-                next[next.length - 1] = { ...next[next.length - 1], text: fullText };
-                return next;
-              });
-            }
-          } catch {
-            // bỏ qua chunk lỗi định dạng, không làm gãy cả luồng
+          const delta = extractDelta(jsonStr);
+          if (delta) {
+            fullText += delta;
+            updateLastAi(fullText);
           }
         }
+        if (done) break;
       }
 
+      // Streaming lỡ trả về rỗng (hiếm, có thể do lỗi định dạng luồng) —
+      // tự động thử lại theo cách gọi thường (đợi viết xong hết mới trả lời
+      // 1 lần) để thầy/cô luôn nhận được câu trả lời thay vì "(Không có phản hồi)".
       if (!fullText) {
-        setMessages((prev) => {
-          const next = [...prev];
-          next[next.length - 1] = { ...next[next.length - 1], text: '(Không có phản hồi)' };
-          return next;
+        const retryResp = await fetch('/api/gemini', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ mode: 'ops-chat', message: q, persona: persona ?? undefined, files, texts, stream: false }),
         });
+        const retryData = await retryResp.json().catch(() => null);
+        if (retryResp.ok && retryData?.text) {
+          fullText = retryData.text;
+          updateLastAi(fullText);
+        } else {
+          updateLastAi('(Không có phản hồi. Thử hỏi lại hoặc rút gọn yêu cầu.)');
+        }
       }
     } catch (e: any) {
       setError(e?.message ?? 'Không kết nối được trợ lý AI. Thử lại sau.');

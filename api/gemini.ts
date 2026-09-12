@@ -343,6 +343,18 @@ Chỉ trả về đúng đoạn nội dung, không thêm tiêu đề, không th�
       // tiết, SKKN...) bị cắt cụt ngay ở phần quan trọng nhất — giờ đã
       // streaming nên có thể cho hẳn nhiều hơn mà không sợ vượt quá 25 giây.
       const maxTokens = persona === 'gvbm' ? 8000 : 2000;
+
+      // Dự phòng: nếu client báo streaming lần trước bị rỗng/lỗi, họ sẽ gọi
+      // lại với stream:false để lấy nguyên câu trả lời 1 lần (chậm hơn nhưng
+      // chắc chắn có nội dung, miễn là không vượt quá 25 giây).
+      if (body.stream === false) {
+        const text = await callGeminiParts(apiKey, system, parts, Math.min(maxTokens, 3500));
+        return new Response(JSON.stringify({ text }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+
       const geminiResp = await callGeminiStream(apiKey, system, parts, maxTokens);
 
       if (!geminiResp.ok || !geminiResp.body) {
