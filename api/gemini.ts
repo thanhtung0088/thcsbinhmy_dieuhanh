@@ -326,9 +326,12 @@ export default async function handler(req: Request) {
   // Mỗi lượt gọi sẽ CHỌN NGẪU NHIÊN 1 key trong danh sách để rải đều lượt
   // dùng; nếu key đó báo lỗi "hết lượt" (429), tự động thử key khác trong
   // danh sách trước khi báo lỗi hẳn cho người dùng.
+  // Khoan dung với lỗi định dạng thường gặp khi dán vào Vercel: chấp nhận
+  // cả dấu phẩy LẪN xuống dòng làm dấu ngăn cách, và tự bỏ dấu " hoặc '
+  // thừa ở đầu/cuối mỗi key nếu lỡ dán nguyên cả dấu ngoặc vào.
   const apiKeys = (process.env.GEMINI_API_KEYS || process.env.GEMINI_API_KEY || '')
-    .split(',')
-    .map((k) => k.trim())
+    .split(/[,\n]+/)
+    .map((k) => k.trim().replace(/^["']+|["']+$/g, ''))
     .filter(Boolean);
 
   if (apiKeys.length === 0) {
@@ -553,7 +556,14 @@ Hãy viết báo cáo tổng hợp trình Hiệu trưởng theo đúng cấu tr�
       headers: { 'Content-Type': 'application/json' },
     });
   } catch (err: any) {
-    return new Response(JSON.stringify({ error: 'Không gọi được Gemini', detail: String(err?.message ?? err) }), {
+    const status = err?.status;
+    const hint =
+      status === 401 || status === 403
+        ? ` (đã thử cả ${apiKeys.length} key, có vẻ TẤT CẢ key đều không hợp lệ — kiểm tra lại có dán dư dấu " ' hoặc khoảng trắng lạ trong GEMINI_API_KEYS/GEMINI_API_KEY trên Vercel không, hoặc key đã bị xoá/hết hạn trên Google AI Studio.)`
+        : status === 429
+          ? ` (cả ${apiKeys.length} key đều đang hết lượt gọi miễn phí — thử lại sau ít phút, hoặc ghép thêm key mới.)`
+          : '';
+    return new Response(JSON.stringify({ error: `Không gọi được Gemini${hint}`, detail: String(err?.message ?? err) }), {
       status: 502,
     });
   }
