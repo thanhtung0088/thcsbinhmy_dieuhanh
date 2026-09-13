@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { useAiAssistant } from '../../context/AiAssistantContext';
 import { getPersona } from '../../data/aiPersonas';
+import { callGeminiApi } from '../../lib/geminiClient';
 import { SimpleMarkdown } from './SimpleMarkdown';
 import { GVBM_TEMPLATES, type GvbmTemplate } from '../../data/gvbmTemplates';
 import { exportToDocx, exportToPdf, exportToPptx } from '../../lib/exportDoc';
@@ -236,115 +237,14 @@ export function GlobalAiAssistant() {
     setLoading(true);
     setError(null);
 
-    function updateLastAi(newText: string) {
+    try {
+      const data = await callGeminiApi<{ text: string }>({ mode: 'ops-chat', message: q, persona: persona ?? undefined, files, texts });
+      const finalText = data.text || '(Không có phản hồi)';
       setMessages((prev) => {
         const next = [...prev];
-        next[next.length - 1] = { ...next[next.length - 1], text: newText };
+        next[next.length - 1] = { ...next[next.length - 1], text: finalText };
         return next;
       });
-    }
-
-    function extractDelta(jsonStr: string): { delta: string; finishReason?: string } {
-      try {
-        const parsed = JSON.parse(jsonStr);
-        const cand = parsed?.candidates?.[0];
-        const delta = (cand?.content?.parts ?? []).map((p: any) => p.text || '').join('');
-        return { delta, finishReason: cand?.finishReason };
-      } catch {
-        return { delta: '' };
-      }
-    }
-
-    try {
-      const resp = await fetch('/api/gemini', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mode: 'ops-chat', message: q, persona: persona ?? undefined, files, texts }),
-      });
-
-      if (!resp.ok || !resp.body) {
-        const raw = await resp.text().catch(() => '');
-        let msg = 'Có lỗi xảy ra.';
-        try {
-          msg = JSON.parse(raw)?.error || msg;
-        } catch {
-          if (resp.status === 504 || resp.status === 502 || resp.status === 503) {
-            msg = 'AI xử lý quá lâu nên máy chủ đã ngắt. Thử lại hoặc rút gọn yêu cầu.';
-          }
-        }
-        throw new Error(msg);
-      }
-
-      // Đọc luồng SSE của Gemini, vừa nhận chữ tới đâu vừa cập nhật giao diện tới đó
-      const reader = resp.body.getReader();
-      const decoder = new TextDecoder();
-      let buffer = '';
-      let fullText = '';
-      let finishReason: string | undefined;
-      let streamBroke = false;
-
-      try {
-        while (true) {
-          const { done, value } = await reader.read();
-          if (value) buffer += decoder.decode(value, { stream: true });
-          if (done) buffer += decoder.decode(); // xả nốt byte còn dở dang trong decoder
-
-          const chunks = buffer.split('\n\n');
-          // Khi luồng đã kết thúc (done), phần còn lại trong buffer cũng là 1
-          // chunk cần xử lý nốt — trước đây bị bỏ sót nên có lúc mất đúng đoạn
-          // chữ cuối cùng, khiến câu trả lời trông như "rỗng" khi bài ngắn.
-          buffer = done ? '' : (chunks.pop() ?? '');
-
-          for (const chunk of chunks) {
-            const line = chunk.trim();
-            if (!line.startsWith('data:')) continue;
-            const jsonStr = line.slice(5).trim();
-            if (!jsonStr) continue;
-            const { delta, finishReason: fr } = extractDelta(jsonStr);
-            if (fr) finishReason = fr;
-            if (delta) {
-              fullText += delta;
-              updateLastAi(fullText);
-            }
-          }
-          if (done) break;
-        }
-      } catch {
-        // Kết nối streaming bị đứt giữa chừng (mạng chập chờn, máy chủ ngắt
-        // đột ngột...) — không coi là lỗi hẳn, để logic bên dưới tự thử lại.
-        streamBroke = true;
-      }
-
-      // Phát hiện bài bị CẮT NGANG GIỮA CHỪNG chứ không chỉ trường hợp rỗng
-      // hoàn toàn: (a) kết nối streaming bị đứt, (b) Gemini báo dừng vì lý do
-      // khác "STOP" (vd MAX_TOKENS/SAFETY/OTHER), hoặc (c) đây là tài liệu
-      // đang soạn theo mẫu (docTitle có giá trị) mà kết quả lại quá ngắn so
-      // với 1 bộ hồ sơ thật — mọi trường hợp này đều tự động thử lại theo
-      // cách gọi thường (đợi viết xong hết mới trả lời 1 lần) để chắc chắn
-      // có đủ nội dung thay vì để thầy/cô thấy bài bị cụt.
-      const looksTruncated =
-        streamBroke ||
-        (!!finishReason && finishReason !== 'STOP') ||
-        !fullText ||
-        (!!docTitle && fullText.length < 500);
-
-      if (looksTruncated) {
-        const retryResp = await fetch('/api/gemini', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ mode: 'ops-chat', message: q, persona: persona ?? undefined, files, texts, stream: false }),
-        });
-        const retryData = await retryResp.json().catch(() => null);
-        if (retryResp.ok && retryData?.text && retryData.text.length > fullText.length) {
-          fullText = retryData.text;
-          updateLastAi(fullText);
-        } else if (!fullText) {
-          updateLastAi('(Không có phản hồi. Thử hỏi lại hoặc rút gọn yêu cầu.)');
-        }
-        // Nếu bản thử lại không dài hơn bản streaming đã có, giữ nguyên bản
-        // streaming (có nội dung dùng được, dù có thể chưa hoàn hảo) thay vì
-        // ghi đè bằng bản kém hơn.
-      }
     } catch (e: any) {
       setError(e?.message ?? 'Không kết nối được trợ lý AI. Thử lại sau.');
       setMessages((prev) => prev.slice(0, -1)); // bỏ bong bóng AI rỗng nếu lỗi

@@ -214,7 +214,7 @@ interface GeminiPart {
   text: string;
 }
 
-async function callGeminiParts(apiKey: string, systemText: string, parts: any[], maxOutputTokens = 400) {
+async function callGeminiRaw(apiKey: string, systemText: string, parts: any[], maxOutputTokens: number) {
   const resp = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent`,
     {
@@ -244,7 +244,9 @@ async function callGeminiParts(apiKey: string, systemText: string, parts: any[],
 
   if (!resp.ok) {
     const detail = await resp.text();
-    throw new Error(`Gemini API lỗi (${resp.status}): ${detail}`);
+    const err = new Error(`Gemini API lỗi (${resp.status}): ${detail}`);
+    (err as any).status = resp.status;
+    throw err;
   }
 
   const data = await resp.json();
@@ -252,7 +254,29 @@ async function callGeminiParts(apiKey: string, systemText: string, parts: any[],
   return outParts.map((p) => p.text).join('').trim();
 }
 
-async function callGemini(apiKey: string, systemText: string, userText: string, maxOutputTokens = 400) {
+// apiKey có thể là 1 key (string) hoặc nhiều key ghép lại (string[]) — nếu
+// key đang dùng bị lỗi "hết lượt gọi" (429) hoặc key sai (401/403), tự động
+// thử key tiếp theo trong danh sách trước khi báo lỗi hẳn cho người dùng.
+async function callGeminiParts(apiKey: string | string[], systemText: string, parts: any[], maxOutputTokens = 400) {
+  const keys = Array.isArray(apiKey) ? apiKey : [apiKey];
+  let lastErr: any;
+  for (const key of keys) {
+    try {
+      return await callGeminiRaw(key, systemText, parts, maxOutputTokens);
+    } catch (err: any) {
+      lastErr = err;
+      // Chỉ thử key khác khi lỗi có vẻ do BẢN THÂN KEY đó (hết lượt/sai key)
+      // — lỗi khác (vd nội dung bị chặn) thì key khác cũng sẽ lỗi y hệt,
+      // thử lại chỉ tốn thời gian vô ích.
+      const status = err?.status;
+      if (status === 429 || status === 401 || status === 403) continue;
+      throw err;
+    }
+  }
+  throw lastErr;
+}
+
+async function callGemini(apiKey: string | string[], systemText: string, userText: string, maxOutputTokens = 400) {
   return callGeminiParts(apiKey, systemText, [{ text: userText }], maxOutputTokens);
 }
 
@@ -295,13 +319,31 @@ export default async function handler(req: Request) {
     return new Response(JSON.stringify({ error: 'Chỉ chấp nhận POST' }), { status: 405 });
   }
 
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) {
+  // Hỗ trợ ghép NHIỀU API key để tránh bị giới hạn lượt gọi miễn phí của
+  // từng key riêng lẻ. Cách khai báo trên Vercel — 1 trong 2 cách:
+  //   GEMINI_API_KEYS = "key-thu-nhat,key-thu-hai,key-thu-ba"  (khuyên dùng)
+  //   hoặc vẫn giữ GEMINI_API_KEY = "key-duy-nhat" như cũ nếu chỉ có 1 key.
+  // Mỗi lượt gọi sẽ CHỌN NGẪU NHIÊN 1 key trong danh sách để rải đều lượt
+  // dùng; nếu key đó báo lỗi "hết lượt" (429), tự động thử key khác trong
+  // danh sách trước khi báo lỗi hẳn cho người dùng.
+  const apiKeys = (process.env.GEMINI_API_KEYS || process.env.GEMINI_API_KEY || '')
+    .split(',')
+    .map((k) => k.trim())
+    .filter(Boolean);
+
+  if (apiKeys.length === 0) {
     return new Response(
-      JSON.stringify({ error: 'Chưa cấu hình GEMINI_API_KEY trên Vercel (Settings → Environment Variables).' }),
+      JSON.stringify({ error: 'Chưa cấu hình GEMINI_API_KEY (hoặc GEMINI_API_KEYS) trên Vercel (Settings → Environment Variables).' }),
       { status: 500 }
     );
   }
+
+  // Trộn ngẫu nhiên thứ tự thử — key đầu tiên trong danh sách không bị "gánh"
+  // nhiều lượt hơn các key sau. Mọi lượt gọi Gemini bên dưới dùng chung biến
+  // apiKey này (giờ là 1 danh sách, không phải 1 key duy nhất) — hàm gọi
+  // Gemini sẽ tự thử lần lượt nếu key đầu bị lỗi hết lượt/sai key.
+  const shuffled = [...apiKeys].sort(() => Math.random() - 0.5);
+  const apiKey = shuffled;
 
   let body: any;
   try {
@@ -331,8 +373,6 @@ Chỉ trả về đúng đoạn nội dung, không thêm tiêu đề, không th�
     if (mode === 'ops-chat') {
       // Trợ lý điều hành chung (nút "Hỏi AI") — hoặc trợ lý theo vai trò
       // (dải thẻ dưới thanh tìm kiếm) nếu có gửi kèm persona.
-      // Streaming: trả thẳng luồng SSE của Gemini cho trình duyệt xử lý,
-      // không đợi viết xong toàn bộ mới trả lời — tránh bị cắt cụt nội dung.
       const { message, context, persona, files, texts } = body as {
         message?: string;
         context?: unknown;
@@ -362,36 +402,18 @@ Chỉ trả về đúng đoạn nội dung, không thêm tiêu đề, không th�
         }
       }
 
-      // Trước đây giới hạn 500/2600 token khiến bài soạn dài (giáo án nhiều
-      // tiết, SKKN...) bị cắt cụt ngay ở phần quan trọng nhất — giờ đã
-      // streaming nên có thể cho hẳn nhiều hơn mà không sợ vượt quá 25 giây.
-      const maxTokens = persona === 'gvbm' ? 16000 : 3000;
-
-      // Dự phòng: nếu client báo streaming lần trước bị rỗng/lỗi, họ sẽ gọi
-      // lại với stream:false để lấy nguyên câu trả lời 1 lần (chậm hơn nhưng
-      // chắc chắn có nội dung, miễn là không vượt quá 25 giây).
-      if (body.stream === false) {
-        const text = await callGeminiParts(apiKey, system, parts, Math.min(maxTokens, 6000));
-        return new Response(JSON.stringify({ text }), {
-          status: 200,
-          headers: { 'Content-Type': 'application/json' },
-        });
-      }
-
-      const geminiResp = await callGeminiStream(apiKey, system, parts, maxTokens);
-
-      if (!geminiResp.ok || !geminiResp.body) {
-        const detail = await geminiResp.text().catch(() => '');
-        return new Response(JSON.stringify({ error: `Gemini API lỗi (${geminiResp.status}): ${detail.slice(0, 300)}` }), {
-          status: 502,
-        });
-      }
-
-      // Chuyển thẳng luồng SSE của Gemini ra cho trình duyệt — không cần
-      // biến đổi gì thêm, vì frontend đã biết cách đọc đúng định dạng này.
-      return new Response(geminiResp.body, {
+      // Nguyên nhân thật khiến bài dài hay bị cụt trước đây là do Gemini
+      // 2.5 âm thầm dùng "hạn mức chữ" cho việc suy nghĩ ngầm trước khi trả
+      // lời (đã tắt ở callGeminiParts) — không phải do gọi kiểu thường hay
+      // streaming. Đã thử streaming nhưng endpoint đó đòi xác thực kiểu
+      // khác (lỗi 401) không hợp với loại mã khoá đang dùng, nên quay lại
+      // cách gọi thường ổn định, chỉ khác là hạn mức giờ cao hơn nhiều và
+      // dùng đúng hiệu quả nhờ đã tắt suy nghĩ ngầm.
+      const maxTokens = persona === 'gvbm' ? 8000 : 3000;
+      const text = await callGeminiParts(apiKey, system, parts, maxTokens);
+      return new Response(JSON.stringify({ text }), {
         status: 200,
-        headers: { 'Content-Type': 'text/event-stream; charset=utf-8', 'Cache-Control': 'no-cache' },
+        headers: { 'Content-Type': 'application/json' },
       });
     }
 
