@@ -2,12 +2,12 @@
 // Web sẽ gọi vào đây (/api/gemini), function này mới là nơi thật sự cầm
 // API key và gọi sang Google. Nhờ vậy API key không bao giờ lộ ra trình
 // duyệt của người dùng.
-// Trước đây dùng Edge runtime, nhưng Edge chỉ cho phép "im lặng" tối đa 25
-// giây trước khi bắt đầu trả lời — bài soạn dài (giáo án nhiều tiết, SKKN...)
-// nhiều lúc mất hơn 25 giây để AI viết xong, bị Vercel ngắt giữa chừng (lỗi
-// "Không gọi được Gemini"). Chuyển sang Node.js runtime (mặc định của
-// Vercel, không cần khai báo config) + đặt maxDuration trong vercel.json để
-// được chạy lâu hơn hẳn (tới 60 giây), đủ thời gian cho các yêu cầu dài.
+// LỊCH SỬ: từng thử đổi sang Node.js runtime để được chạy lâu hơn 25 giây,
+// nhưng sau khi đổi thì ngay cả câu hỏi ngắn như "xin chào" cũng bị treo —
+// tức là bản thân việc đổi runtime gây lỗi mới, không đáng đánh đổi. Quay
+// lại Edge runtime (đã chạy ổn định trước đó) và xử lý bài dài bằng cách
+// soạn từng phần nhỏ (vd từng tiết 1) thay vì cố kéo dài thời gian chạy.
+export const config = { runtime: 'edge' };
 
 const SYSTEM_CONTEXT = `Bạn là trợ lý ảo "Dịch vụ công" của Trường THCS Bình Mỹ.
 Nhiệm vụ: giải đáp ngắn gọn, thân thiện, dễ hiểu cho phụ huynh/học sinh về các
