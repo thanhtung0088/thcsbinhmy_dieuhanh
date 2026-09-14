@@ -83,10 +83,14 @@ QUY TẮC TRÌNH BÀY CHUNG — RẤT QUAN TRỌNG:
   đối không dùng ký hiệu "#" một mình, "*", ">", hay bất kỳ ký hiệu markdown/kỹ thuật nào khác
   ngoài đúng 2 loại trên và "**chữ**" để in đậm — và mỗi cặp "**...**" phải luôn đóng đầy đủ, không
   để dở dang.
-- Nếu bài có NHIỀU TIẾT (số tiết > 1), bắt buộc viết tách riêng và đầy đủ nội dung cho TỪNG TIẾT
-  một (Tiết 1, Tiết 2, Tiết 3...) trong phần Tiến trình dạy học — không được gộp chung/rút gọn
-  thành nội dung của 1 tiết rồi ghi chung chung là đủ cho cả bài. Mỗi tiết phải có đủ 4 hoạt động
-  tương ứng với lượng kiến thức thực sự dạy trong tiết đó.
+- Nếu bài có NHIỀU TIẾT (số tiết > 1), CHỈ soạn phần chung (Mục tiêu, Thiết bị dạy học và học liệu)
+  cùng NỘI DUNG CHI TIẾT ĐẦY ĐỦ CỦA TIẾT 1 trong lần trả lời này — không viết dồn hết các tiết còn
+  lại vào cùng 1 câu trả lời (dễ khiến bài bị cắt ngang do quá dài). Kết thúc bằng đúng 1 dòng ghi
+  chú: "(Đã soạn xong Tiết 1/<tổng số tiết>. Nhắn 'soạn tiếp Tiết 2' để tiếp tục.)" — không thêm gì
+  khác sau dòng đó. Khi người dùng nhắn tiếp "soạn tiếp Tiết 2" (hoặc số tiết khác), chỉ soạn đúng
+  nội dung chi tiết của tiết đó (không nhắc lại Mục tiêu/Thiết bị đã soạn ở Tiết 1), và tiếp tục ghi
+  chú tương tự ở cuối cho tới tiết cuối cùng thì thôi không ghi chú nữa.
+  Nếu chỉ có 1 tiết (số tiết = 1 hoặc không ghi), soạn đầy đủ bình thường, không cần chia nhỏ.
 
 ═══ 1) KẾ HOẠCH BÀI DẠY (KHBD/giáo án) — theo CV 5512/BGDĐT-GDTrH, Phụ lục 4 ═══
 Cấu trúc bắt buộc:
@@ -390,7 +394,7 @@ Chỉ trả về đúng đoạn nội dung, không thêm tiêu đề, không th�
       // khác (lỗi 401) không hợp với loại mã khoá đang dùng, nên quay lại
       // cách gọi thường ổn định, chỉ khác là hạn mức giờ cao hơn nhiều và
       // dùng đúng hiệu quả nhờ đã tắt suy nghĩ ngầm.
-      const maxTokens = persona === 'gvbm' ? 8000 : 3000;
+      const maxTokens = persona === 'gvbm' ? 4000 : 3000;
       const text = await callGeminiParts(apiKey, system, parts, maxTokens);
       return new Response(JSON.stringify({ text }), {
         status: 200,

@@ -29,6 +29,11 @@ const DEFAULT_SUGGESTIONS = [
   'Có nhiệm vụ nào đang quá hạn không?',
 ];
 
+function extractContinueHint(text: string): string | null {
+  const m = text.match(/soạn tiếp Tiết\s*(\d+)/i);
+  return m ? `Soạn tiếp Tiết ${m[1]}` : null;
+}
+
 function classifyFile(file: File): RefFile['kind'] {
   if (file.type.startsWith('image/')) return 'image';
   if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) return 'pdf';
@@ -318,6 +323,19 @@ export function GlobalAiAssistant() {
                     <>
                       <SimpleMarkdown text={m.text} />
                       {m.docTitle && <ExportMenu text={m.text} title={m.docTitle} />}
+                      {i === messages.length - 1 &&
+                        !loading &&
+                        (() => {
+                          const hint = extractContinueHint(m.text);
+                          return hint ? (
+                            <button
+                              onClick={() => send(hint, m.docTitle)}
+                              className="mt-2 ml-2 flex items-center gap-1 text-[11px] font-medium text-teal-700 hover:text-teal-900 border border-teal-200 bg-teal-50 rounded-lg px-2.5 py-1 inline-flex"
+                            >
+                              {hint}
+                            </button>
+                          ) : null;
+                        })()}
                     </>
                   ) : (
                     <span className="flex items-center gap-1.5 text-ink/40 text-sm">
