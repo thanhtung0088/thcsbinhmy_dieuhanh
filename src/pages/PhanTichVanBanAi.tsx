@@ -212,7 +212,7 @@ export function PhanTichVanBanAi() {
   return (
     <div className="space-y-5">
       <div>
-        <p className="text-xs font-semibold tracking-wide text-hoa-800">PHÂN TÍCH VĂN BẢN AI</p>
+        <p className="text-xs font-semibold tracking-wide text-hoa-800">TÓM TẮT VĂN BẢN AI</p>
         <h2 className="text-xl font-bold text-ink mt-0.5">Đọc tài liệu &amp; hỏi đáp bằng AI</h2>
         <p className="text-xs text-ink/50 mt-1 max-w-xl">
           Giống NotebookLM: tải tối đa {MAX_SOURCES} tài liệu (Word, PDF, ảnh) làm "nguồn", AI phân tích sâu, chỉ

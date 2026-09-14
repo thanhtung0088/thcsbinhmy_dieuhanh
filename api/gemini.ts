@@ -221,7 +221,7 @@ interface GeminiPart {
 
 async function callGeminiRaw(apiKey: string, systemText: string, parts: any[], maxOutputTokens: number) {
   const resp = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent`,
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent`,
     {
       method: 'POST',
       headers: {
@@ -292,33 +292,6 @@ async function callGemini(apiKey: string | string[], systemText: string, userTex
 // bị Vercel ngắt giữa chừng (lỗi 504) hoặc bị cắt cụt nội dung. Với streaming,
 // ta bắt đầu gửi dữ liệu ngay khi có chữ đầu tiên nên không bao giờ vượt quá
 // 25 giây, và có thể tiếp tục viết dài tới 300 giây.
-async function callGeminiStream(apiKey: string, systemText: string, parts: any[], maxOutputTokens: number) {
-  return fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?alt=sse`,
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-goog-api-key': apiKey,
-      },
-      body: JSON.stringify({
-        systemInstruction: { parts: [{ text: systemText }] },
-        contents: [{ role: 'user', parts }],
-        generationConfig: {
-          temperature: 0.4,
-          maxOutputTokens,
-          // Gemini 2.5 mặc định âm thầm dùng 1 phần "hạn mức chữ" (maxOutputTokens)
-          // cho việc "suy nghĩ nội bộ" (thinking) TRƯỚC khi viết câu trả lời thật —
-          // nhiều lúc ăn hết phần lớn hạn mức khiến câu trả lời hiện ra bị cụt dù
-          // chưa viết xong. Việc soạn giáo án/văn bản không cần "suy luận nhiều bước"
-          // kiểu đó nên tắt hẳn để dồn toàn bộ hạn mức cho nội dung thật.
-          thinkingConfig: { thinkingBudget: 0 },
-        },
-      }),
-    }
-  );
-}
-
 export default async function handler(req: Request) {
   if (req.method !== 'POST') {
     return new Response(JSON.stringify({ error: 'Chỉ chấp nhận POST' }), { status: 405 });

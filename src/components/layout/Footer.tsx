@@ -1,40 +1,9 @@
-import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Circle } from 'lucide-react';
-import { LEADERSHIP, DEMO_USERS } from '../../data/mockData';
-
-const VISIT_KEY = 'thcsbm_session_visits';
-
-function useSessionVisitCount() {
-  const [count, setCount] = useState(1);
-  useEffect(() => {
-    try {
-      const current = Number(sessionStorage.getItem(VISIT_KEY) ?? '0') + 1;
-      sessionStorage.setItem(VISIT_KEY, String(current));
-      setCount(current);
-    } catch {
-      // sessionStorage unavailable (e.g. private mode) — keep default
-    }
-  }, []);
-  return count;
-}
-
-function useClock() {
-  const [now, setNow] = useState(new Date());
-  useEffect(() => {
-    const id = setInterval(() => setNow(new Date()), 1000);
-    return () => clearInterval(id);
-  }, []);
-  return now;
-}
+import { Phone, Mail, MapPin } from 'lucide-react';
+import { LEADERSHIP } from '../../data/mockData';
 
 export function Footer() {
-  const visits = useSessionVisitCount();
-  const now = useClock();
-  // Số người "đang online" là minh họa cho UI trong Phase 1 (chưa nối
-  // backend/WebSocket) — hiển thị số tài khoản demo đang sẵn sàng,
-  // không phải số kết nối thực tế trên toàn hệ thống.
-  const onlineDemoCount = DEMO_USERS.length;
+  const year = new Date().getFullYear();
 
   return (
     <footer className="border-t border-black/10 bg-hoa-950 text-white/80 text-xs">
@@ -62,20 +31,26 @@ export function Footer() {
         </div>
 
         <div>
-          <p className="text-sm font-semibold text-white">Trạng thái hệ thống</p>
-          <div className="mt-2 flex items-center gap-1.5 text-emerald-400">
-            <Circle size={8} className="fill-current" />
-            <span>{onlineDemoCount} tài khoản demo đang sẵn sàng</span>
-          </div>
-          <p className="mt-1 text-white/40">Lượt truy cập phiên này: {visits}</p>
-          <p className="mt-1 text-white/40">
-            {now.toLocaleDateString('vi-VN')} · {now.toLocaleTimeString('vi-VN')}
-          </p>
+          <p className="text-sm font-semibold text-white">Thông tin liên hệ</p>
+          <ul className="mt-2 space-y-1.5 text-white/60">
+            <li className="flex items-center gap-1.5">
+              <Phone size={12} className="shrink-0" />
+              <span>Đường dây nóng: (cập nhật số điện thoại văn phòng)</span>
+            </li>
+            <li className="flex items-center gap-1.5">
+              <Mail size={12} className="shrink-0" />
+              <span>vanphong@thcsbinhmy.edu.vn</span>
+            </li>
+            <li className="flex items-start gap-1.5">
+              <MapPin size={12} className="shrink-0 mt-0.5" />
+              <span>Điểm chính — (cập nhật địa chỉ trường)</span>
+            </li>
+          </ul>
         </div>
 
         <div>
           <p className="text-sm font-semibold text-white">Bản quyền</p>
-          <p className="mt-2 text-white/50">© {now.getFullYear()} Trường THCS Bình Mỹ</p>
+          <p className="mt-2 text-white/50">© {year} Trường THCS Bình Mỹ</p>
           <p className="mt-1 text-white/50">Thiết kế &amp; lập trình: Nguyễn Thanh Tùng</p>
         </div>
       </div>

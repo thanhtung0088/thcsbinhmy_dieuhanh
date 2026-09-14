@@ -36,7 +36,7 @@ export function KeHoachTruong() {
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <p className="text-xs font-semibold tracking-wide text-blue-600">📚 KẾ HOẠCH TRƯỜNG</p>
+          <p className="text-xs font-semibold tracking-wide text-blue-600">📚 KẾ HOẠCH HOẠT ĐỘNG</p>
           <h2 className="text-xl font-bold text-ink mt-0.5">{active}</h2>
         </div>
         <OnlineMeetingButton />

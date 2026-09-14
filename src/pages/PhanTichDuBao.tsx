@@ -265,7 +265,7 @@ export function PhanTichDuBao() {
       </div>
 
       <p className="text-[11px] text-ink/40">
-        AI Agent tại đây đã kết nối Gemini 2.5 Flash, trả lời dựa trên dữ liệu hiện có của trang (snapshot khi tải
+        AI Agent tại đây đã kết nối Gemini 2.5 Flash Lite, trả lời dựa trên dữ liệu hiện có của trang (snapshot khi tải
         trang). Với dữ liệu không có sẵn, AI sẽ nói rõ là chưa có thay vì suy đoán.
       </p>
     </div>

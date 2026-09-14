@@ -1,6 +1,19 @@
-import { School } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { School, Clock } from 'lucide-react';
+
+function useClock() {
+  const [now, setNow] = useState(new Date());
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(id);
+  }, []);
+  return now;
+}
 
 export function PageBanner() {
+  const now = useClock();
+  const weekday = now.toLocaleDateString('vi-VN', { weekday: 'long' });
+
   return (
     <div className="shrink-0 bg-gradient-to-r from-emerald-900 via-emerald-800 to-teal-800 text-white px-4 md:px-6 py-3 md:py-4 flex items-center justify-between gap-4">
       <div className="flex items-center gap-3 md:gap-4 min-w-0">
@@ -16,10 +29,12 @@ export function PageBanner() {
           </p>
         </div>
       </div>
-      <div className="hidden lg:block text-right text-xs text-amber-300 italic leading-snug shrink-0">
-        Chuyển đổi số – Nâng tầm quản trị
-        <br />
-        Kiến tạo môi trường giáo dục hiện đại
+      <div className="hidden sm:flex items-center gap-2 text-right text-xs md:text-sm text-amber-300 shrink-0">
+        <Clock size={15} className="shrink-0" />
+        <div className="leading-tight">
+          <p className="capitalize">{weekday}, {now.toLocaleDateString('vi-VN')}</p>
+          <p className="text-white/70 text-[11px] md:text-xs">{now.toLocaleTimeString('vi-VN')}</p>
+        </div>
       </div>
     </div>
   );

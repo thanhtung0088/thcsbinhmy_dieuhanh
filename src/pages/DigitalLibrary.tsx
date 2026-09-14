@@ -58,7 +58,7 @@ export function DigitalLibrary() {
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-xs font-semibold tracking-wide text-blue-600">KHO TÀI NGUYÊN VÀ TIỆN ÍCH</p>
+        <p className="text-xs font-semibold tracking-wide text-blue-600">TÀI NGUYÊN &amp; TIỆN ÍCH</p>
         <h2 className="text-xl font-bold text-ink mt-0.5">{LINKS.length} nguồn tra cứu &amp; công cụ hỗ trợ</h2>
         <p className="text-xs text-ink/50 mt-1">
           Gồm các cổng thông tin chính thống về pháp luật/giáo dục và các nền tảng AI miễn phí phổ biến.
