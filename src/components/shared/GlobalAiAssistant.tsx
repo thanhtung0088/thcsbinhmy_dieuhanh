@@ -348,7 +348,7 @@ export function GlobalAiAssistant() {
               </div>
             </div>
           ))}
-          {error && <p className="text-[11px] text-signal-overdue px-1">{error}</p>}
+          {error && <p className="text-[11px] text-signal-overdue px-1 whitespace-pre-wrap">{error}</p>}
 
           {/* GVBM: hiện thẻ chọn mẫu soạn thay vì gợi ý câu hỏi thường */}
           {isGvbm && messages.length === 1 && !gvbmTemplate && (

@@ -27,7 +27,13 @@ export async function callGeminiApi<T = any>(body: Record<string, unknown>): Pro
   }
 
   if (!resp.ok) {
-    throw new Error(data?.error || `Có lỗi xảy ra (mã lỗi ${resp.status}).`);
+    const base = data?.error || `Có lỗi xảy ra (mã lỗi ${resp.status}).`;
+    // Trước đây chỉ hiện thông báo chung chung, giấu mất lý do thật (429 hết
+    // lượt, 503 Google quá tải, 403 bị chặn...) khiến rất khó chẩn đoán lần
+    // sau bị lỗi gì — giờ hiện kèm luôn phần chi tiết gốc (rút gọn) để biết
+    // chính xác cần làm gì tiếp theo.
+    const detail = typeof data?.detail === 'string' ? data.detail.slice(0, 200) : '';
+    throw new Error(detail ? `${base}\n\nChi tiết: ${detail}` : base);
   }
 
   return data as T;
