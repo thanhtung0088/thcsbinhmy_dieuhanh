@@ -269,17 +269,32 @@ async function callGeminiRaw(apiKey: string, systemText: string, parts: any[], m
 async function callGeminiParts(apiKey: string | string[], systemText: string, parts: any[], maxOutputTokens = 400) {
   const keys = Array.isArray(apiKey) ? apiKey : [apiKey];
   let lastErr: any;
-  for (const key of keys) {
+  for (let i = 0; i < keys.length; i++) {
     try {
-      return await callGeminiRaw(key, systemText, parts, maxOutputTokens);
+      return await callGeminiRaw(keys[i], systemText, parts, maxOutputTokens);
     } catch (err: any) {
       lastErr = err;
-      // Chỉ thử key khác khi lỗi có vẻ do BẢN THÂN KEY đó (hết lượt/sai key)
-      // — lỗi khác (vd nội dung bị chặn) thì key khác cũng sẽ lỗi y hệt,
-      // thử lại chỉ tốn thời gian vô ích.
       const status = err?.status;
+      // 429/401/403: lỗi do BẢN THÂN KEY đó (hết lượt/sai key) -> thử key khác ngay.
+      // 503: Google báo "đang quá tải tạm thời" — không phải lỗi của key, nhưng
+      // đợi 1 nhịp ngắn rồi thử lại (key khác nếu còn, hoặc key hiện tại nếu là
+      // key cuối) thường sẽ qua, vì Google ghi rõ đây là tình trạng tạm thời.
+      if (status === 503) {
+        await new Promise((r) => setTimeout(r, 1200));
+        continue;
+      }
       if (status === 429 || status === 401 || status === 403) continue;
       throw err;
+    }
+  }
+  // Đã thử hết danh sách key mà vẫn còn lỗi 503 — thử thêm 1 lần cuối với key
+  // đầu tiên sau khi đợi lâu hơn 1 chút, cho Google thêm thời gian hồi phục.
+  if (lastErr?.status === 503 && keys.length > 0) {
+    await new Promise((r) => setTimeout(r, 2000));
+    try {
+      return await callGeminiRaw(keys[0], systemText, parts, maxOutputTokens);
+    } catch (err) {
+      lastErr = err;
     }
   }
   throw lastErr;
@@ -544,7 +559,9 @@ Hãy viết báo cáo tổng hợp trình Hiệu trưởng theo đúng cấu tr�
         ? ` (đã thử cả ${apiKeys.length} key, có vẻ TẤT CẢ key đều không hợp lệ — kiểm tra lại có dán dư dấu " ' hoặc khoảng trắng lạ trong GEMINI_API_KEYS/GEMINI_API_KEY trên Vercel không, hoặc key đã bị xoá/hết hạn trên Google AI Studio.)`
         : status === 429
           ? ` (cả ${apiKeys.length} key đều đang hết lượt gọi miễn phí — thử lại sau ít phút, hoặc ghép thêm key mới.)`
-          : '';
+          : status === 503
+            ? ' (Google đang quá tải tạm thời trên chính hệ thống của họ, đã tự thử lại vài lần nhưng vẫn chưa được — đợi khoảng 1-2 phút rồi thử lại, đây không phải lỗi ở web mình.)'
+            : '';
     return new Response(JSON.stringify({ error: `Không gọi được Gemini${hint}`, detail: String(err?.message ?? err) }), {
       status: 502,
     });
