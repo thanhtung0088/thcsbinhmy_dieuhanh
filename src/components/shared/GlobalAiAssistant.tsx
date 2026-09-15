@@ -303,7 +303,7 @@ export function GlobalAiAssistant() {
           <Icon size={18} className="text-gold-400" />
           <div className="flex-1">
             <p className="text-sm font-bold leading-tight">{title}</p>
-            <p className="text-[11px] text-white/50">Gemini 2.5 Flash Lite · hỏi về công việc, KPI, số liệu trường</p>
+            <p className="text-[11px] text-white/50">Gemini 2.5 Flash · hỏi về công việc, KPI, số liệu trường</p>
           </div>
           <button onClick={closeAssistant} className="text-white/60 hover:text-white" aria-label="Đóng">
             <X size={18} />
