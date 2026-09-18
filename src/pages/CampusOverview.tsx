@@ -1,4 +1,4 @@
-import { Building2, GraduationCap, UserSquare2, Users } from 'lucide-react';
+import { Building2, GraduationCap, UserSquare2, Users, MapPin } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { CAMPUSES, LEADERSHIP } from '../data/mockData';
 import { useAuth } from '../context/AuthContext';
@@ -25,8 +25,19 @@ export function CampusOverview() {
               </div>
               <h3 className="text-lg font-bold text-ink mt-1">{c.formerName}</h3>
               <p className="text-xs text-ink/50 mt-0.5">
-                Lớp ký hiệu "{c.classLetter}" · {head ? `${head.title.replace('Phó Hiệu trưởng phụ trách ', 'PHT ')}: ${head.name}` : 'Chưa có quyết định PHT phụ trách'}
+                Lớp ký hiệu "{c.classLetter}" ·{' '}
+                {head
+                  ? `${head.title.replace('Phó Hiệu trưởng phụ trách ', 'PHT ')}: ${head.name}`
+                  : c.id === 'chinh'
+                    ? 'Hiệu trưởng trực tiếp phụ trách'
+                    : 'Chưa có quyết định PHT phụ trách'}
               </p>
+              {c.address && (
+                <p className="text-[11px] text-ink/40 mt-1 flex items-start gap-1">
+                  <MapPin size={11} className="shrink-0 mt-0.5" />
+                  <span>{c.address}</span>
+                </p>
+              )}
               {c.note && <p className="text-[11px] text-amber-600/80 mt-1">{c.note}</p>}
 
               <div className="grid grid-cols-3 gap-2 mt-4">

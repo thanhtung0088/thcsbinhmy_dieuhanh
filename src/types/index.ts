@@ -9,6 +9,7 @@ export interface Campus {
   id: CampusId;
   name: string; // tên điểm trường hiện tại
   formerName: string; // tên trường cũ trước sáp nhập
+  address?: string; // địa chỉ theo thông báo chính thức của Hiệu trưởng
   classLetter: string; // ký hiệu lớp: b=điểm chính, a=điểm 1, c=điểm 2 & điểm 3
   teacherCount?: number; // giáo viên — chưa tách được theo điểm 3 (roster PCCM chỉ ghi "Đ2" gộp)
   staffCount?: number; // nhân viên văn phòng — chưa tách được theo điểm 3

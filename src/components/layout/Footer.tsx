@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Phone, Mail, MapPin } from 'lucide-react';
-import { LEADERSHIP } from '../../data/mockData';
+import { LEADERSHIP, SCHOOL_INFO } from '../../data/mockData';
 
 export function Footer() {
   const year = new Date().getFullYear();
@@ -35,15 +35,15 @@ export function Footer() {
           <ul className="mt-2 space-y-1.5 text-white/60">
             <li className="flex items-center gap-1.5">
               <Phone size={12} className="shrink-0" />
-              <span>Đường dây nóng: (cập nhật số điện thoại văn phòng)</span>
+              <span>{SCHOOL_INFO.phone}</span>
             </li>
             <li className="flex items-center gap-1.5">
               <Mail size={12} className="shrink-0" />
-              <span>vanphong@thcsbinhmy.edu.vn</span>
+              <span>{SCHOOL_INFO.email}</span>
             </li>
             <li className="flex items-start gap-1.5">
               <MapPin size={12} className="shrink-0 mt-0.5" />
-              <span>Điểm chính — (cập nhật địa chỉ trường)</span>
+              <span>Trụ sở chính: {SCHOOL_INFO.address}</span>
             </li>
           </ul>
         </div>

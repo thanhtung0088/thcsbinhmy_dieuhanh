@@ -26,16 +26,24 @@ import type {
 export const LEADERSHIP: Leader[] = [
   { id: 'l1', name: 'Trần Đỗ Phương Bình', title: 'Hiệu trưởng', campusId: 'all', concurrent: 'Bí thư Đảng bộ' },
   { id: 'l2', name: 'Nguyễn Thị Mến', title: 'Phó Hiệu trưởng phụ trách Điểm 1', campusId: 'diem1', concurrent: 'Phó Bí thư Đảng bộ' },
-  { id: 'l3', name: 'Nguyễn Thanh Nhàn', title: 'Phó Hiệu trưởng phụ trách Điểm 2', campusId: 'diem2' },
-  // Điểm 3 (nâng cấp từ phân hiệu) hiện chưa có quyết định phân công
-  // Phó Hiệu trưởng phụ trách — để trống, không suy diễn người phụ trách.
+  { id: 'l3', name: 'Nguyễn Thanh Nhàn', title: 'Phó Hiệu trưởng phụ trách Điểm 2, Điểm 3', campusId: 'diem2' },
 ];
+
+// Thông tin liên hệ chính thức — theo thông báo của Hiệu trưởng (không đưa
+// mã số thuế lên web công khai theo yêu cầu).
+export const SCHOOL_INFO = {
+  name: 'Trường Trung học cơ sở Bình Mỹ',
+  address: 'Số 1650 Tỉnh lộ 8, ấp 15, xã Bình Mỹ, Thành phố Hồ Chí Minh',
+  phone: '028.37954312',
+  email: 'C2hoaphucuchi.tphcm@moet.edu.vn',
+};
 
 export const CAMPUSES: Campus[] = [
   {
     id: 'chinh',
     name: 'Điểm chính',
-    formerName: 'THCS Hòa Phú (cũ)',
+    formerName: 'THCS Hòa Phú (cũ) — Trụ sở chính',
+    address: SCHOOL_INFO.address,
     classLetter: 'b',
     teacherCount: 48,
     staffCount: 13, // TTVP + TPT + YTHĐ + CNTT + Nhân viên (9)
@@ -45,7 +53,8 @@ export const CAMPUSES: Campus[] = [
   {
     id: 'diem1',
     name: 'Điểm 1',
-    formerName: 'THCS Trung An (cũ)',
+    formerName: 'THCS Trung An (cũ) — Phân hiệu 1',
+    address: 'Đường Nguyễn Thị Hai, ấp Bốn Phú, xã Bình Mỹ, Thành phố Hồ Chí Minh',
     classLetter: 'a',
     teacherCount: 46,
     staffCount: 6, // TPVP + Nhân viên (5)
@@ -55,7 +64,8 @@ export const CAMPUSES: Campus[] = [
   {
     id: 'diem2',
     name: 'Điểm 2',
-    formerName: 'THCS Bình Hòa (cũ)',
+    formerName: 'THCS Bình Hòa (cũ) — Phân hiệu 2',
+    address: 'Hẻm đường Hà Duy Phiên, ấp 7, xã Bình Mỹ, Thành phố Hồ Chí Minh (khu cầu Bà Đội)',
     classLetter: 'c',
     studentCount: 973, // lớp 6c5-6c10, 7c5-7c10, 8c5-8c9, 9c5-9c9 (khu cầu Bà Đội)
     classCount: 22,
@@ -64,11 +74,12 @@ export const CAMPUSES: Campus[] = [
   {
     id: 'diem3',
     name: 'Điểm 3',
-    formerName: 'Phân hiệu THCS Bình Hòa (cũ) — nâng cấp thành Điểm 3',
+    formerName: 'Phân hiệu THCS Bình Hòa (cũ) — Phân hiệu 3',
+    address: 'Đường Hà Duy Phiên, ấp 11, xã Bình Mỹ, Thành phố Hồ Chí Minh (khu cầu Bà Đế)',
     classLetter: 'c',
     studentCount: 703, // lớp 6c1-6c4, 7c1-7c4, 8c1-8c4, 9c1-9c4 (khu cầu Bà Đế)
     classCount: 16,
-    note: 'Vừa nâng cấp từ phân hiệu — chưa có quyết định phân công Phó Hiệu trưởng, nhân sự GV/NV chưa tách riêng.',
+    note: 'Nhân sự (GV/NV) chưa tách riêng theo Điểm 2/Điểm 3 — PCCM HK1 chỉ ghi gộp "Đ2".',
   },
 ];
 

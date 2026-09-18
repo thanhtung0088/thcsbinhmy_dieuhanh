@@ -40,8 +40,9 @@ export function CampusDetail() {
             {campus.name} — {campus.formerName}
           </h1>
           <p className="text-sm text-white/60 mt-0.5">
-            {head ? `${head.title}: ${head.name}` : 'Chưa bổ nhiệm Phó Hiệu trưởng phụ trách'} · Lớp ký hiệu "{campus.classLetter}"
+            {head ? `${head.title}: ${head.name}` : campus.id === 'chinh' ? 'Hiệu trưởng trực tiếp phụ trách' : 'Chưa bổ nhiệm Phó Hiệu trưởng phụ trách'} · Lớp ký hiệu "{campus.classLetter}"
           </p>
+          {campus.address && <p className="text-xs text-white/40 mt-0.5">{campus.address}</p>}
         </div>
       </div>
 

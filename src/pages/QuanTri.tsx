@@ -101,8 +101,8 @@ export function QuanTri() {
                       <span className="font-medium">{l.name}</span>
                     </li>
                   ))}
-                  <li className="text-xs text-amber-600/80 pt-1">
-                    Điểm chính và Điểm 3 hiện chưa có quyết định phân công Phó Hiệu trưởng phụ trách.
+                  <li className="text-xs text-ink/40 pt-1">
+                    Điểm chính do Hiệu trưởng trực tiếp phụ trách.
                   </li>
                 </ul>
               </div>
