@@ -10,8 +10,9 @@ export interface StaffRecord {
 }
 
 // 196 CB-GV-NV thật, trích nguyên trạng từ Phân công chuyên môn HK1
-// 2026-2027 (PCCM, 07/09/2026). assignment là phần mô tả công tác/môn
-// dạy/lớp dạy rút gọn trực tiếp từ văn bản gốc — không suy diễn thêm.
+// 2026-2027 (PCCM, áp dụng từ 28/09/2026 — bản cập nhật mới nhất). assignment
+// là phần mô tả công tác/môn dạy/lớp dạy rút gọn trực tiếp từ văn bản gốc —
+// không suy diễn thêm.
 export const STAFF: StaffRecord[] = [
   { stt: 1, name: 'Trần Đỗ Phương Bình', title: 'Hiệu trưởng', campusId: 'chinh', subject: undefined, assignment: 'x V.07.04.31 Hiệu trưởng MT8b1; 8b2 2 Bí thư ĐB 0 2 2 0,0' },
   { stt: 2, name: 'Nguyễn Thị Minh Tâm', title: 'TTVP', campusId: 'chinh', subject: undefined, assignment: 'x x V.07.04.31 Quản trị VP MT8b3, 8b4, 8b5, 8b6 4 TTVP; Quản trị VP, Phụ trách PC 0 4 4...' },

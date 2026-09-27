@@ -124,7 +124,10 @@ export const SUBJECT_GROUPS: SubjectGroup[] = [
   {
     id: 'khxh', name: 'Khoa học Xã hội (LSĐL)',
     ttcm: { name: 'Nguyễn Thị Hồng Trinh', campusId: 'chinh' },
-    tpcm: [{ name: 'Hà Văn Thường', campusId: 'diem2' }],
+    tpcm: [
+      { name: 'Huỳnh Thị Phiên', campusId: 'diem1' },
+      { name: 'Hà Văn Thường', campusId: 'diem2' },
+    ],
     memberCount: 16,
   },
   {
@@ -195,7 +198,7 @@ export const TASKS: Task[] = [
 ];
 
 export const DOCUMENTS: DocumentItem[] = [
-  { id: 'd1', code: 'PCCM-260907', title: 'Phân công chuyên môn Học kỳ I, năm học 2026-2027 (áp dụng từ 07/09/2026)', type: 'di', date: '2026-09-07', status: 'da_xong' },
+  { id: 'd1', code: 'PCCM-260928', title: 'Phân công chuyên môn Học kỳ I, năm học 2026-2027 (áp dụng từ 28/09/2026)', type: 'di', date: '2026-09-28', status: 'da_xong' },
   { id: 'd2', code: '245/KH-THCS', title: 'Kế hoạch tổ chức Hội nghị CBVC năm học 2026-2027', type: 'di', date: '2026-09-01', status: 'dang_xu_ly' },
   { id: 'd3', code: '276/TB-THCS', title: 'Thông báo lịch kiểm tra nội bộ tháng 9', type: 'di', date: '2026-09-03', status: 'moi' },
 ];
