@@ -90,15 +90,12 @@ export const STAFF: StaffRecord[] = [
   { stt: 74, name: 'Nguyễn Thị Kim Sa', title: 'Giáo viên', campusId: 'diem1', subject: 'Ngữ Văn', assignment: 'xx V.07.04.31 Dạy lớp Văn, HĐTN 7a3,7a4, 9a2,9a3; HĐTN(2,3)7a5 18 18 18 0,0' },
   { stt: 75, name: 'Võ Anh Thư', title: 'Giáo viên', campusId: 'diem1', subject: 'Ngữ Văn', assignment: 'xx V.07.04.32 Dạy lớp Văn, HĐTN 6a3,6a4;8a1; GDĐP8a3; HĐTN6a4 15 6a4 4 19 19 0,0' },
   { stt: 76, name: 'Võ Thị Thu Trâm', title: 'Giáo viên', campusId: 'diem1', subject: 'Ngữ Văn', assignment: 'xx V.07.04.32 Dạy lớp Văn, HĐTN 7a6, 9a1,9a4; HĐTN7a6 15 7a6 4 19 19 0,0' },
-  { stt: 77, name: 'Trần Khánh Tâm', title: 'Giáo viên', campusId: 'diem1', subject: 'Ngữ Văn', assignment: 'xx HĐ ngoài Văn 7a5,8a2,8a3,8a4 16 16 16 0,0 80.000đ/1 tiết' },
-  { stt: 78, name: 'Trần Thi Loan Anh', title: 'Giáo viên', campusId: 'diem1', subject: 'Ngữ Văn', assignment: 'xx HĐ ngoài Văn 6a1,6a2 8 0 8 8 0,0 80.000đ/1 tiết' },
   { stt: 79, name: 'Trương Thị Hồng Hậu', title: 'TPCM', campusId: 'diem1', subject: 'Toán', assignment: 'xx V.07.04.31 Dạy lớp Toán 7a5,7a6; 9a2,9a4 16 PBT, TPCM1 17 19 -2,0' },
   { stt: 80, name: 'Nguyễn Thị Hồng Cẩm', title: 'Giáo viên', campusId: 'diem1', subject: 'Toán', assignment: 'xx V.07.04.31 Dạy lớp Toán, HĐTN 6a1,6a2,9a6, HĐTN6a1 15 6a1 4 19 19 0,0' },
   { stt: 81, name: 'Trần Thị Cẩm Loan', title: 'Giáo viên', campusId: 'diem1', subject: 'Toán', assignment: 'xx V.07.04.31 Dạy lớp Toán, HĐTN 7a2,7a3,9a3; GDĐP8a6; HĐTN7a2 16 7a2 4 20 19 1,0' },
   { stt: 82, name: 'Lê Văn Nhơn', title: 'Giáo viên', campusId: 'diem1', subject: 'Toán', assignment: 'x V.07.04.31 Dạy lớp Toán 6a4,6a5,6a6, 8a2,8a6 20 20 19 1,0' },
   { stt: 83, name: 'Phan Thị Kim Phượng', title: 'Giáo viên', campusId: 'diem1', subject: 'Toán', assignment: 'xx V.07.04.31 Dạy lớp Toán, HĐTN 8a3, 9a1,9a5; HĐTN9a1 15 9a1 4 19 19 0,0' },
   { stt: 84, name: 'Hàn Thị Tính', title: 'Giáo viên', campusId: 'diem1', subject: 'Toán', assignment: 'xx V.07.04.31 Dạy lớp Toán, HĐTN 8a1,8a4,8a5; HĐTN8a4 15 8a4 4 19 19 0,0' },
-  { stt: 85, name: 'Nguyễn Trần Thùy Thương', title: 'Giáo viên', campusId: 'diem1', subject: 'Toán', assignment: 'xx HĐ ngoài Toán 6a3,7a3,7a4 12 12 12 0,0 80.000đ/1 tiết' },
   { stt: 86, name: 'Biện Thị Thái Thanh', title: 'Giáo viên', campusId: 'diem1', subject: 'Tin học', assignment: 'xx V.07.04.31 Dạy lớp Tin học K6, K8 12 12 19 -7,0' },
   { stt: 87, name: 'Tống Ngọc Thi', title: 'Giáo viên', campusId: 'diem1', subject: 'Tin học', assignment: 'xx V.07.04.31 Dạy lớp Tin học K7, K9 12 Thiết bị, PBM TH1,2 6 18 19 -1,0' },
   { stt: 88, name: 'Lê Trung Hiếu', title: 'TTCM', campusId: 'diem1', subject: 'Ngoại ngữ', assignment: 'x V.07.04.32 Dạy lớp Tiếng Anh 8a6; 9a3,9a4; HĐTN9a3 12 9a3 ĐUV, BTCB, TTCM, Tiểu ĐP 7 ...' },
@@ -112,7 +109,6 @@ export const STAFF: StaffRecord[] = [
   { stt: 96, name: 'Nguyễn Thị Tuyết Nhi', title: 'Giáo viên', campusId: 'diem1', subject: 'KHTN', assignment: 'xx V.07.04.31 Dạy lớp KHTN, HĐTN 6a5,6a6; 7a4; GDĐP9a5; HĐTN7a4 16 7a4 PBM KHTN 3 7 23 ...' },
   { stt: 97, name: 'Trần Duy Phương', title: 'Giáo viên', campusId: 'diem1', subject: 'KHTN', assignment: 'xx V.07.04.31 Dạy lớp KHTN, HĐTN 8a5,8a6; 7a5; GDĐP 9a2; HĐTN9a2 16 8a5 PBM KHTN 2 7 23...' },
   { stt: 98, name: 'Văn Hiếu Anh Tuấn', title: 'Giáo viên', campusId: 'diem1', subject: 'KHTN', assignment: 'x V.07.04.31 Dạy lớp KHTN 8a2,8a3,8a4; 9a1,9a2 20 20 19 1,0' },
-  { stt: 99, name: 'Lê Thành Đại', title: 'Giáo viên', campusId: 'diem1', subject: 'KHTN', assignment: 'x HĐ ngoài KHTN 6a3,6a4,7a1,7a2,7a3 20 20 20 0,0 80.000đ/1 tiết' },
   { stt: 100, name: 'Huỳnh Thị Trường An', title: 'Giáo viên', campusId: 'diem1', subject: 'KHXH', assignment: 'xx V.07.04.31 Dạy lớp LSĐL, GDĐP, HĐTN 6a2,6a3, 7a1,7a2,7a6; GDĐP9a3; HĐTN(1)6a3 16 6a3...' },
   { stt: 101, name: 'Đặng Thị Bích Ngọc', title: 'Giáo viên', campusId: 'diem1', subject: 'KHXH', assignment: 'xx V.07.04.31 Dạy lớp LSĐL, GDĐP 6a1,6a4,6a5,6a6,7a3,7a4; GDĐP9a1 19 19 19 0,0' },
   { stt: 102, name: 'Huỳnh Thị Phiên', title: 'Giáo viên', campusId: 'diem1', subject: 'KHXH', assignment: 'xx V.07.04.31 Dạy lớp LSĐL, HĐTN 8a6,9a1,9a2,9a3; GDĐP9a4; HĐTN(1)8a6 14 8a6 CUV, TPCM ...' },
@@ -141,7 +137,6 @@ export const STAFF: StaffRecord[] = [
   { stt: 125, name: 'Lê Phạm Hoàng Giang', title: 'Nhân viên', campusId: 'diem2', subject: undefined, assignment: 'x HĐ 111 Bảo vệ 0 0,0' },
   { stt: 126, name: 'Lê Thanh Thủy', title: 'Nhân viên', campusId: 'diem2', subject: undefined, assignment: 'x HĐ 111 Bảo vệ 0 0,0' },
   { stt: 127, name: 'Lê Hiệp Thành', title: 'Nhân viên', campusId: 'diem2', subject: undefined, assignment: 'x HĐ ngoài Bảo vệ 0 0,0' },
-  { stt: 128, name: 'Lê Khả Tú', title: 'Giáo viên', campusId: 'diem2', subject: undefined, assignment: 'x V.07.04.32 HĐ ngoài Giám thị Trực 04 buổi 0 0,0 80.000đ/1 tiết' },
   { stt: 129, name: 'Nguyễn Tấn Dũng', title: 'Giáo viên', campusId: 'diem2', subject: 'Toán', assignment: 'x V.07.04.31 Dạy lớp Toán Nghỉ bệnh 0 0 0,0 Bênh nghỉ dài' },
   { stt: 130, name: 'Nguyễn Thị Tuyết Ngọc', title: 'TPCM', campusId: 'diem2', subject: 'Ngữ Văn', assignment: 'x x V.07.04.32 Dạy lớp Ngữ văn, HĐTN 8c6;8c8; 9c5;9c8; HĐTN9c5 19 9c5 PBT, TPCM 5 24 19...' },
   { stt: 131, name: 'Vũ Thị Vân Anh', title: 'Giáo viên', campusId: 'diem2', subject: 'Ngữ Văn', assignment: 'x x V.07.04.32 Dạy lớp Ngữ văn Nghỉ hậu sản từ 01/09/2026 0 0,0' },
@@ -153,7 +148,6 @@ export const STAFF: StaffRecord[] = [
   { stt: 137, name: 'Hà Xuân Mai', title: 'Giáo viên', campusId: 'diem2', subject: 'Ngữ Văn', assignment: 'x x V.07.04.32 Dạy lớp Ngữ văn, HĐTN 6c8; 6c10; 7c9;7c10; HĐTN7c10 19 7c10 4 23 19 4,0' },
   { stt: 138, name: 'Trần Thị Hồng Thắm', title: 'Giáo viên', campusId: 'diem2', subject: 'Ngữ Văn', assignment: 'x x V.07.04.32 Dạy lớp Ngữ văn, HĐTN 7c6;7c7;7c8; 9c3; HĐTN9c3 19 9c3 4 23 19 4,0' },
   { stt: 139, name: 'Nguyễn Thị Kim Yến', title: 'Giáo viên', campusId: 'diem2', subject: 'Ngữ Văn', assignment: 'x V.07.04.32 Dạy lớp Ngữ văn 6c4;6c5;6c6;6c7; 7c4;7c5 24 24 17 7,0' },
-  { stt: 140, name: 'Trần Thị Loan Anh', title: 'Giáo viên', campusId: 'diem2', subject: 'Ngữ Văn', assignment: 'x HĐ ngoài Ngữ văn 6c1;6c3 8 80.000đ/1 tiết' },
   { stt: 141, name: 'Hồ Quang Huy', title: 'TTCM', campusId: 'diem2', subject: 'Toán', assignment: 'x V.07.04.31 Dạy lớp Toán 8c2; 9c1;9c6;9c9 16 BTCB, TTCM 3 19 19 0,0' },
   { stt: 142, name: 'Lê Thị Anh', title: 'Giáo viên', campusId: 'diem2', subject: 'Toán', assignment: 'x x V.07.04.31 Dạy lớp Toán, HĐTN 6c1; 9c2;9c8; HĐTN6c1 15 6c1 4 19 19 0,0' },
   { stt: 143, name: 'Lê Nguyên Hoài', title: 'Giáo viên', campusId: 'diem2', subject: 'Toán', assignment: 'x x V.07.04.31 Dạy lớp Toán, HĐTN 6c3;6c10; 7c3; HĐTN7c3 15 7c3 4 19 19 0,0' },
@@ -184,9 +178,6 @@ export const STAFF: StaffRecord[] = [
   { stt: 168, name: 'Trần Lệ Liễu Thanh', title: 'Giáo viên', campusId: 'diem2', subject: 'KHTN', assignment: 'x V.07.04.32 Dạy lớp KHTN, HĐTN 6c2; 9c4;9c7; HĐTN6c2 15 6c2 4 19 19 0,0' },
   { stt: 169, name: 'Nguyễn Khánh Toàn', title: 'Giáo viên', campusId: 'diem2', subject: 'KHTN', assignment: 'x V.07.04.32 Dạy lớp KHTN, HĐTN 6c6;6c8; 7c5; HĐTN7c5 15 7c5 4 19 17 2,0' },
   { stt: 170, name: 'Trịnh Anh Tuấn', title: 'Giáo viên', campusId: 'diem2', subject: 'KHTN', assignment: 'x V.07.04.32 Dạy lớp KHTN, HĐTN 8c1;8c3;8c9; 9c1; HĐTN8c3 19 8c3 4 23 19 4,0' },
-  { stt: 171, name: 'Nguyễn Minh Trọng', title: 'Giáo viên', campusId: 'diem2', subject: 'KHTN', assignment: 'x HĐ ngoài KHTN 7c1;7c2;7c4 12 80.000đ/1 tiết' },
-  { stt: 172, name: 'Huỳnh Ngô Gia Phúc', title: 'Giáo viên', campusId: 'diem2', subject: 'KHTN', assignment: 'x HĐ ngoài KHTN 6c1;6c5;6c7 12 80.000đ/1 tiết' },
-  { stt: 173, name: 'Mai Nguyễn Xuân Quỳnh', title: 'Giáo viên', campusId: 'diem2', subject: 'KHTN', assignment: 'x HĐ ngoài KHTN 7c3;7c7;7c9 12 80.000đ/1 tiết' },
   { stt: 174, name: 'Hà Văn Thường', title: 'TPCM', campusId: 'diem2', subject: 'KHXH', assignment: 'x V.07.04.31 Dạy lớp LSĐL 6c1;6c2;6c3;6c6; 9c3;9c8;9c9 21 PBT, TPCM 1 22 19 3,0' },
   { stt: 175, name: 'Đoàn Thị Mỹ Duyên', title: 'Giáo viên', campusId: 'diem2', subject: 'KHXH', assignment: 'xx V.07.04.32 Dạy lớp LSĐL Nghỉ hậu sản từ 01/06/2026 Con dưới 12th' },
   { stt: 176, name: 'Lê Thị Nhung', title: 'Giáo viên', campusId: 'diem2', subject: 'KHXH', assignment: 'xx V.07.04.32 Dạy lớp LSĐL 7c4;7c8;7c9;7c10; 9c4;9c5;9c6 21 21 19 2,0' },
@@ -208,6 +199,9 @@ export const STAFF: StaffRecord[] = [
   { stt: 192, name: 'Trần Văn Cừ', title: 'Giáo viên', campusId: 'diem2', subject: 'GDTC', assignment: 'x V.07.04.31 Dạy lớp GDTC, HĐTN 7c6;7c7; 9c5-9c9; HĐTN7c7 17 7c7 4 21 19 2,0 Trực GT 1 ...' },
   { stt: 193, name: 'Thái Thanh Tú', title: 'Giáo viên', campusId: 'diem2', subject: 'GDTC', assignment: 'x V.07.04.32 Dạy lớp GDTC, HĐTN 9c1-9c4; 8c2;8c8; HĐTN8c8 15 8c8 4 19 19 0,0 Trực GT 1 ...' },
   { stt: 194, name: 'Võ Thị Hồng', title: 'Giáo viên', campusId: 'diem2', subject: 'GDTC', assignment: 'x x V.07.04.32 Dạy lớp GDTC, HĐTN 6c1;6c2;6c3;6c8; 6c9; 8c3;8c9; HĐTN6c3 17 6c3 4 21 19...' },
-  { stt: 195, name: 'Nguyễn Vũ Hùng', title: 'Giáo viên', campusId: 'diem2', subject: 'GDTC', assignment: 'x HĐ ngoài GDTC 8c4;8c5;8c6;8c7 8 80.000đ/1 tiết' },
-  { stt: 196, name: 'Nguyễn Thành An', title: 'Giáo viên', campusId: 'diem2', subject: 'GDTC', assignment: 'x HĐ ngoài GDTC 7c1;7c4;7c5;7c8;7c9; 7c10;8c1 14 80.000đ/1 tiết' },
 ];
+
+// PCCM bản 28/09/2026: không còn liệt kê tên riêng các GV dạy thế/hợp đồng
+// ngoài theo tiết (trước đó 11 người, đã bỏ khỏi danh sách trên) — thay
+// bằng đúng 1 dòng tổng hợp cuối văn bản: "Số tiết thuê ngoài: 394".
+export const HOP_DONG_NGOAI_TONG_TIET = 394;
